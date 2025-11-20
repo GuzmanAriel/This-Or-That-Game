@@ -1,0 +1,354 @@
+"use client"
+
+import React, { useEffect, useState } from 'react'
+import { getSupabaseClient } from '../../lib/supabase'
+import type { Game } from '../../lib/types'
+import { loginWithEmail } from '../../auth';
+
+export default function AdminPage() {
+  const supabase = getSupabaseClient()
+
+  const [checking, setChecking] = useState(true)
+  const [user, setUser] = useState<any | null>(null)
+
+  // auth form
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  // create game form
+  const [title, setTitle] = useState('')
+  const [slug, setSlug] = useState('')
+  const [isOpen, setIsOpen] = useState(true)
+  const [tiebreakerEnabled, setTiebreakerEnabled] = useState(false)
+  const [tiebreakerAnswer, setTiebreakerAnswer] = useState<number | ''>('')
+  const [formError, setFormError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<{ slug: string } | null>(null)
+  // list of games created by this admin
+  const [games, setGames] = useState<Game[]>([])
+  const [gamesLoading, setGamesLoading] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    async function checkUser() {
+      setChecking(true)
+      const { data, error } = await supabase.auth.getUser()
+      if (!mounted) return
+      if (error) {
+        setUser(null)
+      } else {
+        setUser(data.user ?? null)
+      }
+      setChecking(false)
+    }
+    checkUser()
+    const { data: listener } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+      setUser(session?.user ?? null)
+    })
+    return () => {
+      mounted = false
+      listener?.subscription?.unsubscribe()
+    }
+  }, [supabase])
+
+  useEffect(() => {
+    // fetch games when user becomes available
+    if (!user) {
+      setGames([])
+      return
+    }
+    let mounted = true
+    async function fetchGames() {
+      setGamesLoading(true)
+      const { data, error } = await supabase.from('games').select('*').eq('created_by', user.id).order('created_at', { ascending: false })
+      if (!mounted) return
+      if (error) {
+        setGames([])
+      } else {
+        setGames((data as Game[]) ?? [])
+      }
+      setGamesLoading(false)
+    }
+    fetchGames()
+    return () => { mounted = false }
+  }, [user, supabase])
+
+  async function handleSignIn(e: React.FormEvent) {
+    e.preventDefault()
+    setAuthError(null)
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        setAuthError(error.message)
+        return
+      }
+      setUser(data.user ?? null)
+      setEmail('')
+      setPassword('')
+    } catch (err: any) {
+      setAuthError(err?.message ?? 'Sign in failed')
+    }
+  }
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    setUser(null)
+  }
+
+  async function handleCreateGame(e: React.FormEvent) {
+    e.preventDefault()
+    setFormError(null)
+    setSuccess(null)
+
+    if (!title.trim() || !slug.trim()) {
+      setFormError('Title and slug are required')
+      return
+    }
+
+    const payload: any = {
+      title: title.trim(),
+      slug: slug.trim().toLowerCase(),
+      is_open: Boolean(isOpen),
+      tiebreaker_enabled: Boolean(tiebreakerEnabled)
+    }
+    if (tiebreakerEnabled) {
+      payload.tiebreaker_answer = tiebreakerAnswer === '' ? null : Number(tiebreakerAnswer)
+    }
+
+    try {
+      // include access token for server to verify admin
+      const session = await supabase.auth.getSession()
+      const token = session.data?.session?.access_token
+
+      const res = await fetch('/api/admin/games', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const result = await res.json()
+      if (!res.ok) {
+        setFormError(result?.error || 'Failed to create game')
+        return
+      }
+
+      const created = result.game
+      setSuccess({ slug: created.slug })
+      setTitle('')
+      setSlug('')
+      setIsOpen(true)
+      setTiebreakerEnabled(false)
+      setTiebreakerAnswer('')
+      // refresh games list
+      const { data: refreshed, error: refreshedErr } = await supabase.from('games').select('*').eq('created_by', created.created_by ?? user?.id).order('created_at', { ascending: false })
+      if (!refreshedErr) setGames((refreshed as Game[]) ?? [])
+    } catch (err: any) {
+      setFormError(err?.message ?? 'Request failed')
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    try {
+      const data = await loginWithEmail(email, password);
+      setMessage('Login successful');
+    } catch (err: any) {
+      setMessage(err?.message ?? String(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (checking) {
+    return (
+      <div className="container mx-auto p-8">
+        <h2 className="text-2xl font-semibold">Admin</h2>
+        <p className="mt-4">Loading…</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto p-8">
+      <h2 className="text-2xl font-semibold">Admin</h2>
+
+      {!user ? (
+        <form onSubmit={handleSignIn} className="mt-6 max-w-md">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            />
+          </div>
+          <div className="mt-4">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            />
+          </div>
+          {authError && <p className="mt-2 text-sm text-red-600">{authError}</p>}
+          <div className="mt-6">
+            <button
+              type="submit"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+              Sign in
+            </button>
+          </div>
+
+          {/* new: link to sign up page */}
+          <p className="mt-4 text-sm">
+            Don't have an account? <a href="/signup" className="text-indigo-600">Create one</a>
+          </p>
+        </form>
+      ) : (
+        <div className="mt-6 space-y-6">
+          <div className="flex items-center justify-between rounded-md border p-3">
+            <div className="text-sm">Logged in as <strong>{user.email}</strong></div>
+            <button
+              onClick={handleSignOut}
+              className="text-sm text-red-600 hover:underline"
+            >
+              Log out
+            </button>
+          </div>
+
+          <form onSubmit={handleCreateGame} className="max-w-lg space-y-4">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                Title
+              </label>
+              <input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
+                Slug
+              </label>
+              <input
+                id="slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value.toLowerCase())}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              />
+              <p className="mt-1 text-xs text-gray-500">Used in the URL /g/[slug]</p>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={isOpen}
+                  onChange={(e) => setIsOpen(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-sm">Open</span>
+              </label>
+
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={tiebreakerEnabled}
+                  onChange={(e) => setTiebreakerEnabled(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-sm">Tiebreaker enabled</span>
+              </label>
+            </div>
+
+            {tiebreakerEnabled && (
+              <div>
+                <label htmlFor="tiebreaker" className="block text-sm font-medium text-gray-700">
+                  Tiebreaker answer (number)
+                </label>
+                <input
+                  id="tiebreaker"
+                  type="number"
+                  value={tiebreakerAnswer}
+                  onChange={(e) => setTiebreakerAnswer(e.target.value === '' ? '' : Number(e.target.value))}
+                  className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm"
+                />
+              </div>
+            )}
+
+            {formError && <p className="text-sm text-red-600">{formError}</p>}
+            {success && (
+              <div className="rounded-md border p-3 bg-green-50 text-sm">
+                Game created: <strong>{success.slug}</strong>
+                <div className="mt-2">
+                  <a className="text-indigo-600" href={`/g/${success.slug}`}>/g/{success.slug}</a>
+                </div>
+                <div>
+                  <a className="text-indigo-600" href={`/g/${success.slug}/leaderboard`}>/g/{success.slug}/leaderboard</a>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <button
+                type="submit"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Create game
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-6">
+            <h3 className="text-lg font-medium">Your games</h3>
+            {gamesLoading ? (
+              <p className="mt-2">Loading games…</p>
+            ) : games.length === 0 ? (
+              <p className="mt-2 text-sm text-gray-500">You haven't created any games yet.</p>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {games.map((g) => (
+                  <li key={g.id} className="flex items-center justify-between rounded-md border p-3">
+                    <div>
+                      <a href={`/g/${g.slug}`} className="text-indigo-600 font-medium">{g.title}</a>
+                      <div className="text-sm text-gray-500">/{g.slug}</div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <a href={`/admin/g/${g.slug}`} className="text-sm text-gray-700 hover:underline">Manage</a>
+                      <a href={`/g/${g.slug}/leaderboard`} className="text-sm text-gray-700 hover:underline">Leaderboard</a>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+      {message && <p>{message}</p>}
+    </div>
+  )
+}
+
