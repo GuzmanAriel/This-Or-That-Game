@@ -161,6 +161,15 @@ export default function AdminGamePage() {
     if (!game) return
     setSavingLabels(true)
     try {
+      // validate tiebreaker numeric when enabled
+      if (tiebreakerEnabledLocal) {
+        const raw = tiebreakerAnswerLocal
+        if (raw === '' || !Number.isFinite(Number(raw))) {
+          setError('Tiebreaker answer must be a number')
+          setSavingLabels(false)
+          return
+        }
+      }
       const updatePayload: any = {
         option_a_label: optionA || null,
         option_b_label: optionB || null,

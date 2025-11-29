@@ -120,6 +120,12 @@ export default function AdminPage() {
       return
     }
 
+    // ensure numeric tiebreaker answer
+    if (tiebreakerEnabled && tiebreakerAnswer !== '' && !Number.isFinite(Number(tiebreakerAnswer))) {
+      setFormError('Tiebreaker answer must be a number')
+      return
+    }
+
     if (tiebreakerEnabled && !tiebreakerPrompt.trim()) {
       setFormError('Tiebreaker question is required when tiebreaker is enabled')
       return

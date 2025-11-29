@@ -16,7 +16,7 @@ interface AnswerRecord {
   id?: string
   game_id: string
   player_id: string
-  question_id: string
+  question_id?: string | null
   answer_text: string
 }
 
@@ -35,6 +35,8 @@ export default function GamePage({ params }: Props) {
 
   // answers state: map question_id -> { value: 'A'|'B'|'', loading, error, saved }
   const [answersState, setAnswersState] = useState<Record<string, { value: 'A' | 'B' | ''; loading: boolean; error?: string; saved?: boolean }>>({})
+  // tiebreaker answer state (numeric/string guessed value)
+  const [tiebreakerState, setTiebreakerState] = useState<{ value: string; loading: boolean; error?: string; saved?: boolean }>({ value: '', loading: false })
 
   // check for existing player id in localStorage for this game
   useEffect(() => {
@@ -146,18 +148,38 @@ export default function GamePage({ params }: Props) {
     }
   }
 
+  async function handleTiebreakerSubmit() {
+    if (!game || !playerId) return
+    if (!game.tiebreaker_enabled) return
+    const val = tiebreakerState.value?.trim()
+    if (!val) return alert('Please enter your tiebreaker answer')
+
+    // only allow numeric answers
+    if (!/^-?\d+(?:\.\d+)?$/.test(val)) {
+      return alert('Tiebreaker answer must be a number')
+    }
+
+    setTiebreakerState(prev => ({ ...prev, loading: true, error: undefined }))
+    try {
+      const payload = {
+        game_id: game.id,
+        player_id: playerId,
+        question_id: null,
+        answer_text: val
+      }
+      const { error } = await supabase.from('answers').insert(payload)
+      if (error) throw error
+      setTiebreakerState(prev => ({ ...prev, loading: false, saved: true }))
+    } catch (err: any) {
+      setTiebreakerState(prev => ({ ...prev, loading: false, error: err?.message ?? 'Submit failed' }))
+    }
+  }
+
   // UI
   return (
     <div className="container mx-auto p-8">
       <h2 className="text-2xl font-semibold">Play: {game.title}</h2>
       <p className="mt-2 text-gray-600">Invite people to: <code className="text-sm">/g/{game.slug}</code></p>
-
-        {game.tiebreaker_enabled && game.tiebreaker_prompt && (
-          <div className="mt-4 rounded-md border p-3 bg-yellow-50">
-            <div className="text-sm font-medium">Tiebreaker</div>
-            <div className="mt-1 text-sm text-gray-700">{game.tiebreaker_prompt}</div>
-          </div>
-        )}
 
       {/* If no playerId, show join form */}
       {!playerId ? (
@@ -229,6 +251,30 @@ export default function GamePage({ params }: Props) {
                 </li>
               )
             })}
+            {game.tiebreaker_enabled && game.tiebreaker_prompt && (
+              <li key="tiebreaker" className="rounded border p-3">
+                <div className="text-sm font-medium">Tiebreaker</div>
+                <div className="mt-1 text-sm">{game.tiebreaker_prompt}</div>
+                <div className="mt-3 flex items-center space-x-2">
+                  <input
+                    type="number"
+                    value={tiebreakerState.value}
+                    onChange={(e) => setTiebreakerState(prev => ({ ...prev, value: e.target.value }))}
+                    className="block w-48 rounded-md border-gray-300 shadow-sm"
+                    disabled={tiebreakerState.saved}
+                    placeholder="Your guess"
+                  />
+                  <button
+                    onClick={() => handleTiebreakerSubmit()}
+                    className="px-3 py-1 bg-indigo-600 text-white rounded-md"
+                    disabled={tiebreakerState.loading || tiebreakerState.saved}
+                  >
+                    {tiebreakerState.loading ? 'Saving…' : tiebreakerState.saved ? 'Saved' : 'Submit'}
+                  </button>
+                </div>
+                {tiebreakerState.error && <div className="mt-2 text-sm text-red-600">{tiebreakerState.error}</div>}
+              </li>
+            )}
           </ul>
 
           {questions.length > 0 && (

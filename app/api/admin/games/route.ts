@@ -48,6 +48,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Tiebreaker answer is required when tiebreaker_enabled is true' }, { status: 400 })
   }
 
+  // ensure tiebreaker answer is numeric when provided
+  if (tiebreaker_enabled) {
+    const n = Number(tiebreaker_answer)
+    if (!Number.isFinite(n) || String(tiebreaker_answer).trim() === '') {
+      return NextResponse.json({ error: 'Tiebreaker answer must be a number' }, { status: 400 })
+    }
+  }
+
   // require tiebreaker prompt when enabled
   if (tiebreaker_enabled && (!tiebreaker_prompt || typeof tiebreaker_prompt !== 'string' || !tiebreaker_prompt.trim())) {
     return NextResponse.json({ error: 'Tiebreaker prompt is required when tiebreaker_enabled is true' }, { status: 400 })
