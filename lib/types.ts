@@ -8,6 +8,7 @@ export interface Game {
   option_a_label?: string
   option_b_label?: string
   tiebreaker_enabled: boolean
+  tiebreaker_prompt?: string
   tiebreaker_answer?: string
   created_by?: string
   created_at?: string

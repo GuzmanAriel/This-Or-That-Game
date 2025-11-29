@@ -24,6 +24,7 @@ export default function AdminPage() {
   const [isOpen, setIsOpen] = useState(true)
   const [tiebreakerEnabled, setTiebreakerEnabled] = useState(false)
   const [tiebreakerAnswer, setTiebreakerAnswer] = useState<number | ''>('')
+  const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
   const [optionALabel, setOptionALabel] = useState('')
   const [optionBLabel, setOptionBLabel] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
@@ -119,6 +120,11 @@ export default function AdminPage() {
       return
     }
 
+    if (tiebreakerEnabled && !tiebreakerPrompt.trim()) {
+      setFormError('Tiebreaker question is required when tiebreaker is enabled')
+      return
+    }
+
     const payload: any = {
       title: title.trim(),
       slug: slug.trim().toLowerCase(),
@@ -127,6 +133,7 @@ export default function AdminPage() {
     }
     payload.option_a_label = optionALabel.trim()
     payload.option_b_label = optionBLabel.trim()
+    if (tiebreakerEnabled) payload.tiebreaker_prompt = tiebreakerPrompt.trim()
     if (optionALabel.trim()) payload.option_a_label = optionALabel.trim()
     if (optionBLabel.trim()) payload.option_b_label = optionBLabel.trim()
     if (tiebreakerEnabled) {
@@ -160,6 +167,7 @@ export default function AdminPage() {
       setIsOpen(true)
       setOptionALabel('')
       setOptionBLabel('')
+      setTiebreakerPrompt('')
       setTiebreakerEnabled(false)
       setTiebreakerAnswer('')
       // refresh games list
@@ -313,17 +321,31 @@ export default function AdminPage() {
             </div>
 
             {tiebreakerEnabled && (
-              <div>
-                <label htmlFor="tiebreaker" className="block text-sm font-medium text-gray-700">
-                  Tiebreaker answer (number)
-                </label>
-                <input
-                  id="tiebreaker"
-                  type="number"
-                  value={tiebreakerAnswer}
-                  onChange={(e) => setTiebreakerAnswer(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm"
-                />
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="tiebreakerPrompt" className="block text-sm font-medium text-gray-700">
+                    Tiebreaker question
+                  </label>
+                  <input
+                    id="tiebreakerPrompt"
+                    type="text"
+                    value={tiebreakerPrompt}
+                    onChange={(e) => setTiebreakerPrompt(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="tiebreaker" className="block text-sm font-medium text-gray-700">
+                    Tiebreaker answer (number)
+                  </label>
+                  <input
+                    id="tiebreaker"
+                    type="number"
+                    value={tiebreakerAnswer}
+                    onChange={(e) => setTiebreakerAnswer(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm"
+                  />
+                </div>
               </div>
             )}
 

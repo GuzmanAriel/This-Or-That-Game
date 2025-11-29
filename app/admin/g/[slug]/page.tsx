@@ -19,12 +19,19 @@ export default function AdminGamePage() {
   const [optionA, setOptionA] = useState('')
   const [optionB, setOptionB] = useState('')
   const [savingLabels, setSavingLabels] = useState(false)
+  const [tiebreakerEnabledLocal, setTiebreakerEnabledLocal] = useState(false)
+  const [tiebreakerAnswerLocal, setTiebreakerAnswerLocal] = useState<number | ''>('')
+  const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
+  const [editingLabels, setEditingLabels] = useState(false)
+
 
   // new question form
   const [prompt, setPrompt] = useState('')
   const [correct, setCorrect] = useState<'mom' | 'dad'>('mom')
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  // editing existing questions
+  const [editing, setEditing] = useState<Record<string, { prompt: string; correct: 'mom' | 'dad'; saving: boolean; error?: string }>>({})
 
   useEffect(() => {
     if (!slug) return
@@ -57,9 +64,12 @@ export default function AdminGamePage() {
 
       setGame(gData)
 
-      // initialize label inputs from game
+      // initialize label inputs and tiebreaker fields from game
       setOptionA((gData as any).option_a_label ?? '')
       setOptionB((gData as any).option_b_label ?? '')
+      setTiebreakerEnabledLocal(Boolean((gData as any).tiebreaker_enabled))
+      setTiebreakerAnswerLocal((gData as any).tiebreaker_answer ?? '')
+      setTiebreakerPrompt((gData as any).tiebreaker_prompt ?? '')
 
       const qResp = await supabase
         .from('questions')
@@ -151,15 +161,25 @@ export default function AdminGamePage() {
     if (!game) return
     setSavingLabels(true)
     try {
+      const updatePayload: any = {
+        option_a_label: optionA || null,
+        option_b_label: optionB || null,
+        tiebreaker_enabled: Boolean(tiebreakerEnabledLocal),
+        tiebreaker_prompt: tiebreakerPrompt || null,
+        tiebreaker_answer: tiebreakerEnabledLocal ? (tiebreakerAnswerLocal === '' ? null : Number(tiebreakerAnswerLocal)) : null
+      }
+
       const { data, error } = await supabase
         .from('games')
-        .update({ option_a_label: optionA || null, option_b_label: optionB || null })
+        .update(updatePayload)
         .eq('id', game.id)
         .select()
         .limit(1)
         .maybeSingle()
       if (error) throw error
       if (data) setGame(data as Game)
+      // exit edit mode after successful save
+      setEditingLabels(false)
     } catch (err: any) {
       setError(err?.message ?? 'Failed to save labels')
     } finally {
@@ -175,21 +195,72 @@ export default function AdminGamePage() {
           <div className="text-lg font-semibold">{game.title}</div>
           <div className="text-sm text-gray-600">Slug: {game.slug}</div>
           <div className="text-sm">Status: {game.is_open ? 'Open' : 'Closed'}</div>
-          <form onSubmit={handleSaveLabels} className="mt-3 space-y-2">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Option A label</label>
-              <input value={optionA} onChange={(e) => setOptionA(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+          {game.tiebreaker_enabled && game.tiebreaker_prompt && (
+            <div className="mt-2 text-sm text-gray-700">
+              <div className="font-medium">Tiebreaker</div>
+              <div className="mt-1">{game.tiebreaker_prompt}</div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Option B label</label>
-              <input value={optionB} onChange={(e) => setOptionB(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-            </div>
-            <div>
-              <button type="submit" disabled={savingLabels} className="inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white">
-                {savingLabels ? 'Saving…' : 'Save labels'}
-              </button>
-            </div>
-          </form>
+          )}
+          <div className="mt-3">
+            {!editingLabels ? (
+              <div className="space-y-2">
+                <div>
+                  <div className="text-sm font-medium text-gray-700">Option A label</div>
+                  <div className="mt-1 text-gray-900">{optionA || 'Option A'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-700">Option B label</div>
+                  <div className="mt-1 text-gray-900">{optionB || 'Option B'}</div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button className="text-sm text-indigo-600" onClick={() => setEditingLabels(true)}>Edit labels</button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSaveLabels} className="space-y-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Option A label</label>
+                  <input value={optionA} onChange={(e) => setOptionA(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Option B label</label>
+                  <input value={optionB} onChange={(e) => setOptionB(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+                </div>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" checked={tiebreakerEnabledLocal} onChange={(e) => setTiebreakerEnabledLocal(e.target.checked)} />
+                    <span className="text-sm">Tiebreaker enabled</span>
+                  </label>
+                </div>
+                {tiebreakerEnabledLocal && (
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Tiebreaker question</label>
+                      <input value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Tiebreaker answer (number)</label>
+                      <input type="number" value={tiebreakerAnswerLocal} onChange={(e) => setTiebreakerAnswerLocal(e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm" />
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center space-x-2">
+                  <button type="submit" disabled={savingLabels} className="inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white">
+                    {savingLabels ? 'Saving…' : 'Save'}
+                  </button>
+                  <button type="button" className="inline-flex items-center px-3 py-1 rounded border" onClick={() => {
+                    // cancel edits: reset fields from `game` and exit edit mode
+                    setOptionA((game as any)?.option_a_label ?? '')
+                    setOptionB((game as any)?.option_b_label ?? '')
+                    setTiebreakerEnabledLocal(Boolean((game as any)?.tiebreaker_enabled))
+                    setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
+                    setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
+                    setEditingLabels(false)
+                  }}>Cancel</button>
+                </div>
+              </form>
+            )}
+          </div>
           <div className="mt-2 space-x-3">
             <a className="text-indigo-600" href={`/g/${game.slug}`}>Player link</a>
             <a className="text-indigo-600" href={`/g/${game.slug}/leaderboard`}>Leaderboard</a>
@@ -202,14 +273,64 @@ export default function AdminGamePage() {
 
         <ul className="space-y-2">
           {questions.length === 0 && <li className="text-sm text-gray-600">No questions yet</li>}
-          {questions.map((q) => (
-            <li key={q.id} className="rounded border p-3">
-              <div className="text-sm text-gray-500">#{q.order_index}</div>
-              <div className="mt-1">{q.prompt}</div>
-              {/* Show friendly label for the stored correct answer (maps 'mom'/'dad' to option labels) */}
-              <div className="mt-1 text-sm text-gray-700">Answer: {q.correct_answer === 'mom' ? (optionA || 'Option A') : (q.correct_answer === 'dad' ? (optionB || 'Option B') : q.correct_answer)}</div>
-            </li>
-          ))}
+          {questions.map((q) => {
+            const e = editing[q.id]
+            return (
+              <li key={q.id} className="rounded border p-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="text-sm text-gray-500">#{q.order_index}</div>
+                    {!e ? (
+                      <div className="mt-1">{q.prompt}</div>
+                    ) : (
+                      <div className="mt-1">
+                        <input value={e.prompt} onChange={(ev) => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], prompt: ev.target.value } }))} className="block w-full rounded-md border-gray-300 shadow-sm" />
+                      </div>
+                    )}
+                    {/* Show friendly label for the stored correct answer (maps 'mom'/'dad' to option labels) */}
+                    {!e ? (
+                      <div className="mt-1 text-sm text-gray-700">Answer: {q.correct_answer === 'mom' ? (optionA || 'Option A') : (q.correct_answer === 'dad' ? (optionB || 'Option B') : q.correct_answer)}</div>
+                    ) : (
+                      <div className="mt-2 flex items-center space-x-4">
+                        <label className="flex items-center space-x-2">
+                          <input type="radio" name={`edit-correct-${q.id}`} checked={e.correct === 'mom'} onChange={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'mom' } }))} />
+                          <span className="text-sm">{optionA || 'Option A'}</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input type="radio" name={`edit-correct-${q.id}`} checked={e.correct === 'dad'} onChange={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'dad' } }))} />
+                          <span className="text-sm">{optionB || 'Option B'}</span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                  <div className="ml-4 text-right">
+                    {!e ? (
+                      <button className="text-sm text-indigo-600 hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'mom' ? 'mom' : 'dad', saving: false } }))}>Edit</button>
+                    ) : (
+                      <div className="space-x-2">
+                        <button className="text-sm text-green-600" onClick={async () => {
+                          // save edit
+                          setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: true } }))
+                          try {
+                            const { error } = await supabase.from('questions').update({ prompt: e.prompt.trim(), correct_answer: e.correct }).eq('id', q.id)
+                            if (error) throw error
+                            // refresh questions
+                            const qResp = await supabase.from('questions').select('*').eq('game_id', game!.id).order('order_index', { ascending: true })
+                            setQuestions(qResp.data ?? [])
+                            setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })
+                          } catch (err: any) {
+                            setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: false, error: err?.message ?? 'Save failed' } }))
+                          }
+                        }}>Save</button>
+                        <button className="text-sm text-red-600" onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {e?.error && <div className="mt-2 text-sm text-red-600">{e.error}</div>}
+              </li>
+            )
+          })}
         </ul>
 
         <form onSubmit={handleAddQuestion} className="mt-6 space-y-3">

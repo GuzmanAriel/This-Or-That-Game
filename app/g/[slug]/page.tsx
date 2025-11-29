@@ -152,6 +152,13 @@ export default function GamePage({ params }: Props) {
       <h2 className="text-2xl font-semibold">Play: {game.title}</h2>
       <p className="mt-2 text-gray-600">Invite people to: <code className="text-sm">/g/{game.slug}</code></p>
 
+        {game.tiebreaker_enabled && game.tiebreaker_prompt && (
+          <div className="mt-4 rounded-md border p-3 bg-yellow-50">
+            <div className="text-sm font-medium">Tiebreaker</div>
+            <div className="mt-1 text-sm text-gray-700">{game.tiebreaker_prompt}</div>
+          </div>
+        )}
+
       {/* If no playerId, show join form */}
       {!playerId ? (
         <section className="mt-6 max-w-md">
