@@ -5,6 +5,8 @@ export interface Game {
   slug: string
   title: string
   is_open: boolean
+  option_a_label?: string
+  option_b_label?: string
   tiebreaker_enabled: boolean
   tiebreaker_answer?: string
   created_by?: string

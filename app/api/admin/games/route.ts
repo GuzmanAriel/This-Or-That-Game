@@ -32,10 +32,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { title, slug, tiebreaker_enabled, tiebreaker_answer, is_open } = body || {}
+  const { title, slug, tiebreaker_enabled, tiebreaker_answer, is_open, option_a_label, option_b_label } = body || {}
 
   if (!title || typeof title !== 'string' || !slug || typeof slug !== 'string') {
     return NextResponse.json({ error: 'Missing required fields: title, slug' }, { status: 400 })
+  }
+
+  // require option labels
+  if (!option_a_label || typeof option_a_label !== 'string' || !option_b_label || typeof option_b_label !== 'string') {
+    return NextResponse.json({ error: 'Missing required fields: option_a_label, option_b_label' }, { status: 400 })
+  }
+
+  // if tiebreaker is enabled, require tiebreaker_answer
+  if (tiebreaker_enabled && (tiebreaker_answer === undefined || tiebreaker_answer === null || String(tiebreaker_answer).trim() === '')) {
+    return NextResponse.json({ error: 'Tiebreaker answer is required when tiebreaker_enabled is true' }, { status: 400 })
   }
 
   // Normalize flags
@@ -64,13 +74,16 @@ export async function POST(request: Request) {
     is_open: openFlag,
     tiebreaker_enabled: tiebreakerEnabled,
     tiebreaker_answer: tiebreaker_answer ?? null,
+    option_a_label: option_a_label ?? null,
+    option_b_label: option_b_label ?? null,
     created_by: userData.user.id
   }
 
   const { data: inserted, error: insertErr } = await supabase.from('games').insert(insertPayload).select().single()
-
   if (insertErr) {
-    return NextResponse.json({ error: 'Failed to create game' }, { status: 500 })
+    // Return DB error message to help debugging (safe in dev).
+    console.error('insertErr', insertErr)
+    return NextResponse.json({ error: insertErr.message || 'Failed to create game', details: insertErr }, { status: 500 })
   }
 
   return NextResponse.json({ game: inserted })

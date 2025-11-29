@@ -15,6 +15,11 @@ export default function AdminGamePage() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [error, setError] = useState<string | null>(null)
 
+  // option labels for the game (editable by admin)
+  const [optionA, setOptionA] = useState('')
+  const [optionB, setOptionB] = useState('')
+  const [savingLabels, setSavingLabels] = useState(false)
+
   // new question form
   const [prompt, setPrompt] = useState('')
   const [correct, setCorrect] = useState<'mom' | 'dad'>('mom')
@@ -51,6 +56,10 @@ export default function AdminGamePage() {
       }
 
       setGame(gData)
+
+      // initialize label inputs from game
+      setOptionA((gData as any).option_a_label ?? '')
+      setOptionB((gData as any).option_b_label ?? '')
 
       const qResp = await supabase
         .from('questions')
@@ -137,6 +146,27 @@ export default function AdminGamePage() {
     }
   }
 
+  async function handleSaveLabels(e: React.FormEvent) {
+    e.preventDefault()
+    if (!game) return
+    setSavingLabels(true)
+    try {
+      const { data, error } = await supabase
+        .from('games')
+        .update({ option_a_label: optionA || null, option_b_label: optionB || null })
+        .eq('id', game.id)
+        .select()
+        .limit(1)
+        .maybeSingle()
+      if (error) throw error
+      if (data) setGame(data as Game)
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to save labels')
+    } finally {
+      setSavingLabels(false)
+    }
+  }
+
   return (
     <div className="p-8 max-w-3xl">
       <div className="mb-6">
@@ -145,6 +175,21 @@ export default function AdminGamePage() {
           <div className="text-lg font-semibold">{game.title}</div>
           <div className="text-sm text-gray-600">Slug: {game.slug}</div>
           <div className="text-sm">Status: {game.is_open ? 'Open' : 'Closed'}</div>
+          <form onSubmit={handleSaveLabels} className="mt-3 space-y-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Option A label</label>
+              <input value={optionA} onChange={(e) => setOptionA(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Option B label</label>
+              <input value={optionB} onChange={(e) => setOptionB(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+            </div>
+            <div>
+              <button type="submit" disabled={savingLabels} className="inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white">
+                {savingLabels ? 'Saving…' : 'Save labels'}
+              </button>
+            </div>
+          </form>
           <div className="mt-2 space-x-3">
             <a className="text-indigo-600" href={`/g/${game.slug}`}>Player link</a>
             <a className="text-indigo-600" href={`/g/${game.slug}/leaderboard`}>Leaderboard</a>
@@ -161,7 +206,8 @@ export default function AdminGamePage() {
             <li key={q.id} className="rounded border p-3">
               <div className="text-sm text-gray-500">#{q.order_index}</div>
               <div className="mt-1">{q.prompt}</div>
-              <div className="mt-1 text-sm text-gray-700">Answer: {q.correct_answer}</div>
+              {/* Show friendly label for the stored correct answer (maps 'mom'/'dad' to option labels) */}
+              <div className="mt-1 text-sm text-gray-700">Answer: {q.correct_answer === 'mom' ? (optionA || 'Option A') : (q.correct_answer === 'dad' ? (optionB || 'Option B') : q.correct_answer)}</div>
             </li>
           ))}
         </ul>
@@ -177,11 +223,11 @@ export default function AdminGamePage() {
             <div className="mt-1 flex items-center space-x-4">
               <label className="flex items-center space-x-2">
                 <input type="radio" name="correct" checked={correct === 'mom'} onChange={() => setCorrect('mom')} />
-                <span className="text-sm">Mom</span>
+                <span className="text-sm">{optionA || 'Option A'}</span>
               </label>
               <label className="flex items-center space-x-2">
                 <input type="radio" name="correct" checked={correct === 'dad'} onChange={() => setCorrect('dad')} />
-                <span className="text-sm">Dad</span>
+                <span className="text-sm">{optionB || 'Option B'}</span>
               </label>
             </div>
           </div>
