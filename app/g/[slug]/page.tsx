@@ -37,6 +37,7 @@ export default function GamePage({ params }: Props) {
   const [answersState, setAnswersState] = useState<Record<string, { value: 'A' | 'B' | ''; loading: boolean; error?: string; saved?: boolean }>>({})
   // tiebreaker answer state (numeric/string guessed value)
   const [tiebreakerState, setTiebreakerState] = useState<{ value: string; loading: boolean; error?: string; saved?: boolean }>({ value: '', loading: false })
+  const [submittingAll, setSubmittingAll] = useState(false)
 
   // check for existing player id in localStorage for this game
   useEffect(() => {
@@ -175,6 +176,57 @@ export default function GamePage({ params }: Props) {
     }
   }
 
+  async function handleSubmitAll() {
+    if (!game || !playerId) return
+    // ensure all non-saved questions have a selected answer
+    const missing = questions.filter(q => !(answersState[q.id]?.saved) && !(answersState[q.id]?.value))
+    if (missing.length > 0) {
+      return alert('Please answer all questions before submitting')
+    }
+
+    // if tiebreaker enabled, ensure it's numeric (if not yet saved)
+    if (game.tiebreaker_enabled && game.tiebreaker_prompt && !tiebreakerState.saved) {
+      const val = (tiebreakerState.value || '').toString().trim()
+      if (!val) return alert('Please enter your tiebreaker answer')
+      if (!/^-?\d+(?:\.\d+)?$/.test(val)) return alert('Tiebreaker answer must be a number')
+    }
+
+    setSubmittingAll(true)
+    try {
+      const payloads: any[] = []
+      for (const q of questions) {
+        const st = answersState[q.id]
+        if (!st) continue
+        // skip if already saved
+        if (st.saved) continue
+        payloads.push({ game_id: game.id, player_id: playerId, question_id: q.id, answer_text: st.value })
+      }
+      if (game.tiebreaker_enabled && game.tiebreaker_prompt && !tiebreakerState.saved) {
+        payloads.push({ game_id: game.id, player_id: playerId, question_id: null, answer_text: (tiebreakerState.value || '').toString().trim() })
+      }
+
+      if (payloads.length === 0) {
+        setSubmittingAll(false)
+        return alert('Nothing to submit')
+      }
+
+      const { error } = await supabase.from('answers').insert(payloads)
+      if (error) throw error
+
+      // mark saved
+      const newAnswersState = { ...answersState }
+      for (const q of questions) {
+        if (newAnswersState[q.id]) newAnswersState[q.id] = { ...newAnswersState[q.id], saved: true, loading: false }
+      }
+      setAnswersState(newAnswersState)
+      if (game.tiebreaker_enabled && game.tiebreaker_prompt) setTiebreakerState(prev => ({ ...prev, saved: true, loading: false }))
+    } catch (err: any) {
+      alert(err?.message ?? 'Submit failed')
+    } finally {
+      setSubmittingAll(false)
+    }
+  }
+
   // UI
   return (
     <div className="container mx-auto p-8">
@@ -239,13 +291,9 @@ export default function GamePage({ params }: Props) {
                         <span>{game?.option_b_label ?? 'Option B'}</span>
                       </label>
                     </div>
-                    <button
-                      onClick={() => handleAnswerSubmit(q.id)}
-                      className="px-3 py-1 bg-indigo-600 text-white rounded-md"
-                      disabled={st.loading || st.saved}
-                    >
-                      {st.loading ? 'Saving…' : st.saved ? 'Saved' : 'Submit'}
-                    </button>
+                    <div className="px-3 py-1 rounded-md text-sm">
+                      {st.saved ? <span className="text-green-600">Saved</span> : <span className="text-gray-600">Not saved</span>}
+                    </div>
                   </div>
                   {st.error && <div className="mt-2 text-sm text-red-600">{st.error}</div>}
                 </li>
@@ -277,11 +325,19 @@ export default function GamePage({ params }: Props) {
             )}
           </ul>
 
-          {questions.length > 0 && (
-            <div className="mt-6">
+          <div className="mt-6 flex items-center space-x-4">
+            <button
+              onClick={() => handleSubmitAll()}
+              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md"
+              disabled={submittingAll}
+            >
+              {submittingAll ? 'Submitting…' : 'Submit All Answers'}
+            </button>
+
+            {questions.length > 0 && (
               <a href={`/g/${game.slug}/leaderboard`} className="text-indigo-600">View Leaderboard</a>
-            </div>
-          )}
+            )}
+          </div>
         </section>
       )}
     </div>
