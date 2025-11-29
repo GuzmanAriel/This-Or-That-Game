@@ -68,16 +68,121 @@ export default function GamePage({ params }: Props) {
       if (!mounted) return
       setQuestions((qData as any) ?? [])
       // initialize answers state map
-      const map: Record<string, { value: 'A' | 'B' | ''; loading: boolean }> = {}
-      ;((qData as any) ?? []).forEach((q: Question) => {
-        map[q.id] = { value: '', loading: false }
-      })
+          const map: Record<string, { value: 'A' | 'B' | ''; loading: boolean; saved?: boolean }> = {}
+          ;((qData as any) ?? []).forEach((q: Question) => {
+            map[q.id] = { value: '', loading: false, saved: false }
+          })
       setAnswersState(map)
       setLoading(false)
     }
     load()
     return () => { mounted = false }
   }, [slug, supabase])
+
+      // Restore saved answers from DB and any local draft for this player
+      useEffect(() => {
+        if (!game || !playerId || questions.length === 0) return
+        const gid = game.id
+        let mounted = true
+        async function restore() {
+          // restore draft first (so user edits aren't lost)
+          try {
+            const draftKey = `answersDraft:${gid}:${playerId}`
+            const raw = localStorage.getItem(draftKey)
+            if (raw) {
+              const parsed = JSON.parse(raw)
+              // apply parsed answers as unsaved values
+              setAnswersState(prev => {
+                const next = { ...prev }
+                for (const q of questions) {
+                  const v = parsed?.answers?.[q.id]
+                  if (v !== undefined) next[q.id] = { ...(next[q.id] ?? { value: '', loading: false }), value: v, saved: false }
+                }
+                return next
+              })
+              if (parsed?.tiebreaker !== undefined) {
+                setTiebreakerState(prev => ({ ...prev, value: String(parsed.tiebreaker), saved: false }))
+              }
+            }
+          } catch (e) {
+            // ignore localStorage parse errors
+          }
+
+          // then fetch latest saved answers from the DB and merge (DB saved answers should be treated as saved)
+          try {
+            const { data } = await supabase
+              .from('answers')
+              .select('*')
+              .eq('game_id', gid)
+              .eq('player_id', playerId)
+              .order('created_at', { ascending: false })
+
+            if (!mounted || !data) return
+
+            // build map of latest per question_id (including tiebreaker where question_id == null)
+            const seen = new Set<string>()
+            const latestPerQ: Record<string, any> = {}
+            let latestTiebreaker: string | undefined
+            for (const a of (data as any[])) {
+              if (a.question_id === null) {
+                if (latestTiebreaker === undefined) latestTiebreaker = a.answer_text
+                continue
+              }
+              const qid = a.question_id
+              if (!seen.has(qid)) {
+                seen.add(qid)
+                latestPerQ[qid] = a
+              }
+            }
+
+            setAnswersState(prev => {
+              const next: any = { ...prev }
+              for (const q of questions) {
+                const saved = latestPerQ[q.id]
+                // prefer unsaved draft in `prev` (if user has edited and not saved), otherwise apply saved DB value
+                if (prev[q.id] && prev[q.id].value && !prev[q.id].saved) {
+                  // keep draft value
+                  next[q.id] = { ...prev[q.id], loading: false }
+                } else if (saved) {
+                  next[q.id] = { ...(next[q.id] ?? { value: '', loading: false }), value: saved.answer_text as any, saved: true, loading: false }
+                } else {
+                  next[q.id] = { ...(next[q.id] ?? { value: '', loading: false }), loading: false }
+                }
+              }
+              return next
+            })
+
+            if (latestTiebreaker !== undefined) {
+              setTiebreakerState(prev => {
+                if (prev.value && !prev.saved) return prev // keep draft
+                return { ...prev, value: latestTiebreaker, saved: true, loading: false }
+              })
+            }
+          } catch (err) {
+            console.error('restore answers error', err)
+          }
+        }
+
+        restore()
+        return () => { mounted = false }
+      }, [game, playerId, questions, supabase])
+
+      // persist drafts to localStorage whenever answers/tiebreaker change
+      useEffect(() => {
+        if (!game || !playerId) return
+        const gid = game.id
+        try {
+          const draftKey = `answersDraft:${gid}:${playerId}`
+          const payload: any = { answers: {}, tiebreaker: tiebreakerState.value }
+          for (const q of questions) {
+            const st = answersState[q.id]
+            if (st) payload.answers[q.id] = st.value
+          }
+          localStorage.setItem(draftKey, JSON.stringify(payload))
+        } catch (e) {
+          // ignore
+        }
+      }, [answersState, tiebreakerState, game, playerId, questions])
 
   if (loading) return <div className="p-8">Loading…</div>
   if (!game) return <div className="p-8">Game not found</div>
@@ -144,6 +249,7 @@ export default function GamePage({ params }: Props) {
       const { error } = await supabase.from('answers').insert(payload)
       if (error) throw error
       setAnswersState(prev => ({ ...prev, [questionId]: { ...prev[questionId], loading: false, saved: true } }))
+      try { localStorage.removeItem(`answersDraft:${game.id}:${playerId}`) } catch (e) {}
     } catch (err: any) {
       setAnswersState(prev => ({ ...prev, [questionId]: { ...prev[questionId], loading: false, error: err?.message ?? 'Submit failed' } }))
     }
@@ -171,6 +277,7 @@ export default function GamePage({ params }: Props) {
       const { error } = await supabase.from('answers').insert(payload)
       if (error) throw error
       setTiebreakerState(prev => ({ ...prev, loading: false, saved: true }))
+      try { localStorage.removeItem(`answersDraft:${game.id}:${playerId}`) } catch (e) {}
     } catch (err: any) {
       setTiebreakerState(prev => ({ ...prev, loading: false, error: err?.message ?? 'Submit failed' }))
     }
@@ -220,6 +327,7 @@ export default function GamePage({ params }: Props) {
       }
       setAnswersState(newAnswersState)
       if (game.tiebreaker_enabled && game.tiebreaker_prompt) setTiebreakerState(prev => ({ ...prev, saved: true, loading: false }))
+      try { localStorage.removeItem(`answersDraft:${game.id}:${playerId}`) } catch (e) {}
     } catch (err: any) {
       alert(err?.message ?? 'Submit failed')
     } finally {
@@ -274,7 +382,7 @@ export default function GamePage({ params }: Props) {
                           name={`answer-${q.id}`}
                           value="A"
                           checked={st.value === 'A'}
-                          onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' }), value: 'A' } }))}
+                          onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))}
                           disabled={st.saved}
                         />
                         <span>{game?.option_a_label ?? 'Option A'}</span>
@@ -285,14 +393,26 @@ export default function GamePage({ params }: Props) {
                           name={`answer-${q.id}`}
                           value="B"
                           checked={st.value === 'B'}
-                          onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' }), value: 'B' } }))}
+                          onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))}
                           disabled={st.saved}
                         />
                         <span>{game?.option_b_label ?? 'Option B'}</span>
                       </label>
                     </div>
                     <div className="px-3 py-1 rounded-md text-sm">
-                      {st.saved ? <span className="text-green-600">Saved</span> : <span className="text-gray-600">Not saved</span>}
+                      {st.saved ? (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-green-600">Saved</span>
+                          <button
+                            onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '', loading: false }), saved: false } }))}
+                            className="text-sm px-2 py-1 bg-yellow-400 text-black rounded-md"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-gray-600">Not saved</span>
+                      )}
                     </div>
                   </div>
                   {st.error && <div className="mt-2 text-sm text-red-600">{st.error}</div>}
@@ -303,22 +423,34 @@ export default function GamePage({ params }: Props) {
               <li key="tiebreaker" className="rounded border p-3">
                 <div className="text-sm font-medium">Tiebreaker</div>
                 <div className="mt-1 text-sm">{game.tiebreaker_prompt}</div>
-                <div className="mt-3 flex items-center space-x-2">
+                  <div className="mt-3 flex items-center space-x-2">
                   <input
                     type="number"
                     value={tiebreakerState.value}
-                    onChange={(e) => setTiebreakerState(prev => ({ ...prev, value: e.target.value }))}
+                    onChange={(e) => setTiebreakerState(prev => ({ ...prev, value: e.target.value, saved: false }))}
                     className="block w-48 rounded-md border-gray-300 shadow-sm"
                     disabled={tiebreakerState.saved}
                     placeholder="Your guess"
                   />
-                  <button
-                    onClick={() => handleTiebreakerSubmit()}
-                    className="px-3 py-1 bg-indigo-600 text-white rounded-md"
-                    disabled={tiebreakerState.loading || tiebreakerState.saved}
-                  >
-                    {tiebreakerState.loading ? 'Saving…' : tiebreakerState.saved ? 'Saved' : 'Submit'}
-                  </button>
+                  {tiebreakerState.saved ? (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-green-600">Saved</span>
+                      <button
+                        onClick={() => setTiebreakerState(prev => ({ ...prev, saved: false }))}
+                        className="text-sm px-2 py-1 bg-yellow-400 text-black rounded-md"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleTiebreakerSubmit()}
+                      className="px-3 py-1 bg-indigo-600 text-white rounded-md"
+                      disabled={tiebreakerState.loading}
+                    >
+                      {tiebreakerState.loading ? 'Saving…' : 'Submit'}
+                    </button>
+                  )}
                 </div>
                 {tiebreakerState.error && <div className="mt-2 text-sm text-red-600">{tiebreakerState.error}</div>}
               </li>
