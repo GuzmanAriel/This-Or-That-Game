@@ -267,6 +267,16 @@ export default function AdminPage() {
           </div>
 
           <form onSubmit={handleCreateGame} className="max-w-lg space-y-4">
+            <div className="rounded-md border p-3 bg-gray-50 text-sm text-gray-700">
+              <div className="font-medium">Field guide</div>
+              <div className="mt-2 space-y-1">
+                <div>• <strong>Title</strong>: Display name shown to players and on leaderboards.</div>
+                <div>• <strong>Slug</strong>: URL identifier used at <span className="font-mono">/g/[slug]</span>; use lowercase and hyphens.</div>
+                <div>• <strong>Option A / Option B</strong>: The two choices players will pick between.</div>
+                <div>• <strong>Open</strong>: When enabled players can submit responses; when disabled the game is closed to submissions.</div>
+                <div>• <strong>Tiebreaker</strong>: Optional numeric question to break ties — provide a prompt and the correct number.</div>
+              </div>
+            </div>
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700">
                 Title
@@ -278,6 +288,7 @@ export default function AdminPage() {
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               />
+              <p className="mt-1 text-xs text-gray-500">Displayed on the public game page and leaderboards.</p>
             </div>
 
             <div>
@@ -291,17 +302,19 @@ export default function AdminPage() {
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               />
-              <p className="mt-1 text-xs text-gray-500">Used in the URL /g/[slug]</p>
+              <p className="mt-1 text-xs text-gray-500">Used in the URL <span className="font-mono">/g/[slug]</span>. Make it unique, lowercase, and URL-friendly (use hyphens).</p>
             </div>
 
             <div>
               <label htmlFor="optionA" className="block text-sm font-medium text-gray-700">Option A label</label>
               <input id="optionA" value={optionALabel} onChange={(e) => setOptionALabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+              <p className="mt-1 text-xs text-gray-500">Label shown as one of the two choices players pick (e.g. "Mom").</p>
             </div>
 
             <div>
               <label htmlFor="optionB" className="block text-sm font-medium text-gray-700">Option B label</label>
               <input id="optionB" value={optionBLabel} onChange={(e) => setOptionBLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+              <p className="mt-1 text-xs text-gray-500">Label shown as the second choice players pick (e.g. "Dad").</p>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -314,6 +327,7 @@ export default function AdminPage() {
                 />
                 <span className="text-sm">Open</span>
               </label>
+              <p className="mt-1 text-xs text-gray-500">When checked, players can submit answers to this game. Uncheck to close submissions.</p>
 
               <label className="flex items-center space-x-2">
                 <input
@@ -324,6 +338,7 @@ export default function AdminPage() {
                 />
                 <span className="text-sm">Tiebreaker enabled</span>
               </label>
+              <p className="mt-1 text-xs text-gray-500">Enable an optional numeric tiebreaker question to rank guesses when players tie.</p>
             </div>
 
             {tiebreakerEnabled && (
@@ -339,6 +354,7 @@ export default function AdminPage() {
                     onChange={(e) => setTiebreakerPrompt(e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                   />
+                  <p className="mt-1 text-xs text-gray-500">Short prompt shown to players (e.g. "How many candies are in the jar?").</p>
                 </div>
                 <div>
                   <label htmlFor="tiebreaker" className="block text-sm font-medium text-gray-700">
@@ -351,6 +367,7 @@ export default function AdminPage() {
                     onChange={(e) => setTiebreakerAnswer(e.target.value === '' ? '' : Number(e.target.value))}
                     className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm"
                   />
+                  <p className="mt-1 text-xs text-gray-500">The numeric correct answer used to rank tiebreaker guesses (required if tiebreaker enabled).</p>
                 </div>
               </div>
             )}
