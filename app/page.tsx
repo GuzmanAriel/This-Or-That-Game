@@ -1,35 +1,80 @@
-import React from 'react'
+"use client"
+
+import React, { useEffect, useState } from 'react'
 import { getSupabaseClient } from '../lib/supabase'
 
-// Server component homepage. Uses Supabase server-side auth to determine session.
-export default async function HomePage() {
+// Client component homepage — mirrors `AuthBar` client-side auth logic
+export default function HomePage() {
   const supabase = getSupabaseClient()
-  // Call server-side auth.getSession() to determine if a user is logged in.
-  const { data } = await supabase.auth.getSession()
-  const user = data?.session?.user ?? null
+  const [user, setUser] = useState<any | null>(null)
+
   // Fetch games the user created (admin view) and games they've submitted to (player view).
-  let adminGames: any[] = []
-  let submittedGames: any[] = []
-  if (user) {
-    try {
-      const { data: a } = await supabase.from('games').select('*').eq('created_by', user.id).order('created_at', { ascending: false })
-      adminGames = (a as any) ?? []
-    } catch (e) {
-      adminGames = []
+  const [adminGames, setAdminGames] = useState<any[]>([])
+  const [submittedGames, setSubmittedGames] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    async function check() {
+      const { data } = await supabase.auth.getUser()
+      if (!mounted) return
+      setUser(data?.user ?? null)
+    }
+    check()
+    const { data: listener } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+      setUser(session?.user ?? null)
+    })
+    return () => {
+      mounted = false
+      listener?.subscription?.unsubscribe()
+    }
+  }, [supabase])
+
+  useEffect(() => {
+    if (!user) {
+      setAdminGames([])
+      setSubmittedGames([])
+      return
     }
 
-    try {
-      // find submissions tied to this user's email, then load related games
-      const { data: subs } = await supabase.from('submissions').select('game_id').eq('email', user.email)
-      const ids = Array.from(new Set(((subs as any[]) || []).map((s) => s.game_id).filter(Boolean)))
-      if (ids.length > 0) {
-        const { data: g } = await supabase.from('games').select('*').in('id', ids)
-        submittedGames = (g as any) ?? []
+    let mounted = true
+    ;(async () => {
+      setLoading(true)
+      try {
+        const { data: a } = await supabase.from('games').select('*').eq('created_by', user.id).order('created_at', { ascending: false })
+        if (!mounted) return
+        setAdminGames((a as any) ?? [])
+      } catch (e) {
+        if (mounted) setAdminGames([])
       }
-    } catch (e) {
-      submittedGames = []
-    }
-  }
+
+      try {
+        const { data: subs } = await supabase.from('submissions').select('game_id').eq('email', user.email)
+        if (!mounted) return
+        const ids = Array.from(new Set(((subs as any[]) || []).map((s) => s.game_id).filter(Boolean)))
+        if (ids.length > 0) {
+          const { data: g } = await supabase.from('games').select('*').in('id', ids)
+          if (!mounted) return
+          setSubmittedGames((g as any) ?? [])
+        } else {
+          if (mounted) setSubmittedGames([])
+        }
+      } catch (e) {
+        if (mounted) setSubmittedGames([])
+      }
+
+      if (mounted) setLoading(false)
+    })()
+    return () => { mounted = false }
+  }, [user, supabase])
+
+  // determine admin status client-side: either app metadata or if they created games
+  const isAdmin = Boolean(
+    user && (
+      (user.app_metadata && (user.app_metadata.role === 'admin' || (Array.isArray(user.app_metadata.roles) && user.app_metadata.roles.includes('admin')))) ||
+      (adminGames && adminGames.length > 0)
+    )
+  )
 
   return (
     <div className="min-h-screen flex flex-col items-center px-6 py-12">
@@ -56,13 +101,15 @@ export default async function HomePage() {
             <p className="text-sm text-gray-600">Logged in as {user.email}</p>
 
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <a
-                href="/admin"
-                className="block border rounded-lg p-6 hover:shadow-lg transition bg-white"
-              >
+              <div className="block border rounded-lg p-6 hover:shadow-lg transition bg-white">
                 <h3 className="text-lg font-semibold">🔐 Admin Area</h3>
                 <p className="mt-2 text-gray-600">Create and manage your games.</p>
-              </a>
+                {isAdmin && (
+                  <div className="mt-4">
+                    <a href="/admin" className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Go to Admin</a>
+                  </div>
+                )}
+              </div>
 
               <a
                 href="/admin"
@@ -87,12 +134,20 @@ export default async function HomePage() {
                   Log in or sign up to create your own This or That game, add questions, and manage events.
                 </p>
                 <div className="mt-4">
-                  <a
-                    href="/admin"
-                    className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-                  >
-                    Go to Admin
-                  </a>
+                    <div className="flex items-center space-x-3">
+                      <a
+                        href="/signup"
+                        className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                      >
+                        Sign up
+                      </a>
+                      <a
+                        href="/admin"
+                        className="inline-block border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50 transition"
+                      >
+                        Login
+                      </a>
+                    </div>
                 </div>
               </div>
 
