@@ -234,6 +234,7 @@ export default function GamePage({ params }: Props) {
 
   async function handleAnswerSubmit(questionId: string) {
     if (!game || !playerId) return
+    if (!game.is_open) return alert('Submissions are closed for this game')
     const state = answersState[questionId]
     if (!state || state.value === '') return alert('Please select an answer')
 
@@ -257,6 +258,7 @@ export default function GamePage({ params }: Props) {
 
   async function handleTiebreakerSubmit() {
     if (!game || !playerId) return
+    if (!game.is_open) return alert('Submissions are closed for this game')
     if (!game.tiebreaker_enabled) return
     const val = tiebreakerState.value?.trim()
     if (!val) return alert('Please enter your tiebreaker answer')
@@ -285,6 +287,7 @@ export default function GamePage({ params }: Props) {
 
   async function handleSubmitAll() {
     if (!game || !playerId) return
+    if (!game.is_open) return alert('Submissions are closed for this game')
     // ensure all non-saved questions have a selected answer
     const missing = questions.filter(q => !(answersState[q.id]?.saved) && !(answersState[q.id]?.value))
     if (missing.length > 0) {
@@ -341,6 +344,13 @@ export default function GamePage({ params }: Props) {
       <h2 className="text-2xl font-semibold">Play: {game.title}</h2>
       <p className="mt-2 text-gray-600">Invite people to: <code className="text-sm">/g/{game.slug}</code></p>
 
+      {!game.is_open && (
+        <div className="mt-4 rounded-md bg-red-50 border border-red-200 p-3 text-red-700">
+          <div className="font-semibold">Submissions are now closed</div>
+          <div className="text-sm">This game is not accepting answers. You can still view the leaderboard.</div>
+        </div>
+      )}
+
       {/* If no playerId, show join form */}
       {!playerId ? (
         <section className="mt-6 max-w-md">
@@ -383,7 +393,7 @@ export default function GamePage({ params }: Props) {
                           value="A"
                           checked={st.value === 'A'}
                           onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))}
-                          disabled={st.saved}
+                          disabled={st.saved || !game.is_open}
                         />
                         <span>{game?.option_a_label ?? 'Option A'}</span>
                       </label>
@@ -394,7 +404,7 @@ export default function GamePage({ params }: Props) {
                           value="B"
                           checked={st.value === 'B'}
                           onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))}
-                          disabled={st.saved}
+                          disabled={st.saved || !game.is_open}
                         />
                         <span>{game?.option_b_label ?? 'Option B'}</span>
                       </label>
@@ -403,12 +413,14 @@ export default function GamePage({ params }: Props) {
                       {st.saved ? (
                         <div className="flex items-center space-x-2">
                           <span className="text-green-600">Saved</span>
-                          <button
-                            onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '', loading: false }), saved: false } }))}
-                            className="text-sm px-2 py-1 bg-yellow-400 text-black rounded-md"
-                          >
-                            Edit
-                          </button>
+                          {game.is_open && (
+                            <button
+                              onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '', loading: false }), saved: false } }))}
+                              className="text-sm px-2 py-1 bg-yellow-400 text-black rounded-md"
+                            >
+                              Edit
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <span className="text-gray-600">Not saved</span>
@@ -429,27 +441,33 @@ export default function GamePage({ params }: Props) {
                     value={tiebreakerState.value}
                     onChange={(e) => setTiebreakerState(prev => ({ ...prev, value: e.target.value, saved: false }))}
                     className="block w-48 rounded-md border-gray-300 shadow-sm"
-                    disabled={tiebreakerState.saved}
+                    disabled={tiebreakerState.saved || !game.is_open}
                     placeholder="Your guess"
                   />
                   {tiebreakerState.saved ? (
                     <div className="flex items-center space-x-2">
                       <span className="text-green-600">Saved</span>
-                      <button
-                        onClick={() => setTiebreakerState(prev => ({ ...prev, saved: false }))}
-                        className="text-sm px-2 py-1 bg-yellow-400 text-black rounded-md"
-                      >
-                        Edit
-                      </button>
+                      {game.is_open && (
+                        <button
+                          onClick={() => setTiebreakerState(prev => ({ ...prev, saved: false }))}
+                          className="text-sm px-2 py-1 bg-yellow-400 text-black rounded-md"
+                        >
+                          Edit
+                        </button>
+                      )}
                     </div>
                   ) : (
-                    <button
-                      onClick={() => handleTiebreakerSubmit()}
-                      className="px-3 py-1 bg-indigo-600 text-white rounded-md"
-                      disabled={tiebreakerState.loading}
-                    >
-                      {tiebreakerState.loading ? 'Saving…' : 'Submit'}
-                    </button>
+                    (game.is_open ? (
+                      <button
+                        onClick={() => handleTiebreakerSubmit()}
+                        className="px-3 py-1 bg-indigo-600 text-white rounded-md"
+                        disabled={tiebreakerState.loading}
+                      >
+                        {tiebreakerState.loading ? 'Saving…' : 'Submit'}
+                      </button>
+                    ) : (
+                      <span className="text-sm text-gray-500">Submissions closed</span>
+                    ))
                   )}
                 </div>
                 {tiebreakerState.error && <div className="mt-2 text-sm text-red-600">{tiebreakerState.error}</div>}
@@ -457,19 +475,21 @@ export default function GamePage({ params }: Props) {
             )}
           </ul>
 
-          <div className="mt-6 flex items-center space-x-4">
-            <button
-              onClick={() => handleSubmitAll()}
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md"
-              disabled={submittingAll}
-            >
-              {submittingAll ? 'Submitting…' : 'Submit All Answers'}
-            </button>
+            <div className="mt-6 flex items-center space-x-4">
+              {game.is_open && (
+                <button
+                  onClick={() => handleSubmitAll()}
+                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md"
+                  disabled={submittingAll}
+                >
+                  {submittingAll ? 'Submitting…' : 'Submit All Answers'}
+                </button>
+              )}
 
-            {questions.length > 0 && (
-              <a href={`/g/${game.slug}/leaderboard`} className="text-indigo-600">View Leaderboard</a>
-            )}
-          </div>
+              {questions.length > 0 && (
+                <a href={`/g/${game.slug}/leaderboard`} className="text-indigo-600">View Leaderboard</a>
+              )}
+            </div>
         </section>
       )}
     </div>

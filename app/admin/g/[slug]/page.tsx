@@ -23,6 +23,7 @@ export default function AdminGamePage() {
   const [tiebreakerAnswerLocal, setTiebreakerAnswerLocal] = useState<number | ''>('')
   const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
   const [editingLabels, setEditingLabels] = useState(false)
+  const [togglingOpen, setTogglingOpen] = useState(false)
 
 
   // new question form
@@ -196,6 +197,26 @@ export default function AdminGamePage() {
     }
   }
 
+  async function handleToggleOpen() {
+    if (!game) return
+    setTogglingOpen(true)
+    try {
+      const { data, error } = await supabase
+        .from('games')
+        .update({ is_open: !game.is_open })
+        .eq('id', game.id)
+        .select()
+        .limit(1)
+        .maybeSingle()
+      if (error) throw error
+      if (data) setGame(data as Game)
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to update game status')
+    } finally {
+      setTogglingOpen(false)
+    }
+  }
+
   return (
     <div className="p-8 max-w-3xl">
       <div className="mb-6">
@@ -223,6 +244,13 @@ export default function AdminGamePage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <button className="text-sm text-indigo-600" onClick={() => setEditingLabels(true)}>Edit labels</button>
+                  <button
+                    className="text-sm text-red-600"
+                    onClick={handleToggleOpen}
+                    disabled={togglingOpen}
+                  >
+                    {togglingOpen ? (game.is_open ? 'Closing…' : 'Re-opening…') : (game.is_open ? 'Close submissions' : 'Re-open submissions')}
+                  </button>
                 </div>
               </div>
             ) : (
