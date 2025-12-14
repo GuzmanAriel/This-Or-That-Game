@@ -15,6 +15,10 @@ export default function AdminGamePage() {
   const [game, setGame] = useState<Game | null>(null)
   const [questions, setQuestions] = useState<Question[]>([])
   const [error, setError] = useState<string | null>(null)
+  // admin auth
+  const [checkingUser, setCheckingUser] = useState(true)
+  const [user, setUser] = useState<any | null>(null)
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
   // option labels for the game (editable by admin)
   const [optionA, setOptionA] = useState('')
@@ -100,6 +104,45 @@ export default function AdminGamePage() {
     return () => { mounted = false }
   }, [slug, supabase])
 
+  useEffect(() => {
+    let mounted = true
+    async function checkAuth() {
+      try {
+        const { data } = await supabase.auth.getUser()
+        if (!mounted) return
+        setUser(data.user ?? null)
+      } catch (err) {
+        if (!mounted) return
+        setUser(null)
+      } finally {
+        if (mounted) setCheckingUser(false)
+      }
+    }
+    checkAuth()
+    return () => { mounted = false }
+  }, [supabase])
+
+  useEffect(() => {
+    // generate QR data URL for the public play link using the local `qrcode` package
+    let mounted = true
+    async function gen() {
+      if (!game?.slug) return
+      try {
+        const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
+        const target = siteUrl ? `${siteUrl}/g/${game.slug}` : `${window.location.origin}/g/${game.slug}`
+        const mod = await import('qrcode')
+        const dataUrl = await mod.toDataURL(target, { width: 400 })
+        if (!mounted) return
+        setQrDataUrl(dataUrl)
+      } catch (err) {
+        console.error('Failed to generate QR', err)
+        if (mounted) setQrDataUrl(null)
+      }
+    }
+    gen()
+    return () => { mounted = false }
+  }, [game?.slug])
+
   if (!slug) {
     return <div className="p-8">Missing slug</div>
   }
@@ -110,6 +153,19 @@ export default function AdminGamePage() {
 
   if (!game) {
     return <div className="p-8">Game not found</div>
+  }
+
+  if (checkingUser) return <div className="p-8">Checking auth…</div>
+  if (!user) {
+    return (
+      <div className="p-8">
+        <h2 className="text-xl font-semibold">Admin — Sign in required</h2>
+        <p className="mt-4">You must be signed in as an admin to manage this game.</p>
+        <div className="mt-4">
+          <a className="text-indigo-600" href="/admin">Go to Admin sign-in</a>
+        </div>
+      </div>
+    )
   }
 
   async function handleAddQuestion(e: React.FormEvent) {
@@ -232,6 +288,28 @@ export default function AdminGamePage() {
           <div className="text-lg font-semibold">{game.title}</div>
           <div className="text-sm text-gray-600">Slug: {game.slug}</div>
           <div className="text-sm">Status: {game.is_open ? 'Open' : 'Closed'}</div>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div>
+              <div className="text-sm font-medium">Public play link</div>
+              <div className="mt-1"><a className="text-indigo-600" href={`/g/${game.slug}`}>{`/g/${game.slug}`}</a></div>
+              <div className="mt-2 text-sm font-medium">Leaderboard</div>
+              <div className="mt-1"><a className="text-indigo-600" href={`/g/${game.slug}/leaderboard`}>{`/g/${game.slug}/leaderboard`}</a></div>
+            </div>
+            <div className="text-center">
+              {/* QR code suitable for printing; SITE URL is read from NEXT_PUBLIC_SITE_URL. Uses local qrcode to create a data URI. */}
+              <div className="p-4 border rounded">
+                {qrDataUrl ? (
+                  <img src={qrDataUrl} alt="QR code" className="mx-auto" />
+                ) : (
+                  <div className="h-40 w-40 mx-auto bg-gray-100 flex items-center justify-center">QR</div>
+                )}
+                <div className="mt-2 text-sm break-all">{qrDataUrl ? undefined : `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/g/${game.slug}`}</div>
+                <div className="mt-2">
+                  <button onClick={() => window.print()} className="px-3 py-1 bg-gray-100 rounded border">Print</button>
+                </div>
+              </div>
+            </div>
+          </div>
           {game.tiebreaker_enabled && game.tiebreaker_prompt && (
             <div className="mt-2 text-sm text-gray-700">
               <div className="font-medium">Tiebreaker</div>

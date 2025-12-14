@@ -28,7 +28,9 @@ export default function GamePage({ params }: Props) {
 
   const [loading, setLoading] = useState(true)
   const [game, setGame] = useState<Game | null>(null)
-  const [questions, setQuestions] = useState<Question[]>([])
+  // Public questions must NOT include the correct answer field
+  type PublicQuestion = Omit<Question, 'correct_answer'>
+  const [questions, setQuestions] = useState<PublicQuestion[]>([])
   // player state: stored in memory and persisted to localStorage so refresh keeps session
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [playerLoading, setPlayerLoading] = useState(false)
@@ -64,7 +66,8 @@ export default function GamePage({ params }: Props) {
         return
       }
       setGame(gData as Game)
-      const { data: qData } = await supabase.from('questions').select('*').eq('game_id', (gData as any).id).order('order_index', { ascending: true })
+      // Select only the public fields to avoid leaking correct answers
+      const { data: qData } = await supabase.from('questions').select('id, prompt, order_index, game_id').eq('game_id', (gData as any).id).order('order_index', { ascending: true })
       if (!mounted) return
       setQuestions((qData as any) ?? [])
       // initialize answers state map
@@ -186,6 +189,22 @@ export default function GamePage({ params }: Props) {
 
   if (loading) return <div className="p-8">Loading…</div>
   if (!game) return <div className="p-8">Game not found</div>
+
+  // If game is closed, show friendly closed message and leaderboard link only
+  if (!game.is_open) {
+    return (
+      <div className="container mx-auto p-8">
+        <h2 className="text-2xl font-semibold">{game.title}</h2>
+        <div className="mt-4 rounded-md bg-yellow-50 border border-yellow-200 p-4 text-yellow-800">
+          <div className="font-semibold">This game is closed</div>
+          <div className="mt-2">Submissions are no longer accepted. You can still view the leaderboard below.</div>
+        </div>
+        <div className="mt-6">
+          <a href={`/g/${game.slug}/leaderboard`} className="text-indigo-600">View Leaderboard</a>
+        </div>
+      </div>
+    )
+  }
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault()
