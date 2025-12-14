@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
+import EmojiPicker from '../components/EmojiPicker'
 import { getSupabaseClient } from '../../lib/supabase'
 import type { Game } from '../../lib/types'
 import { loginWithEmail } from '../../auth';
@@ -22,6 +23,8 @@ export default function AdminPage() {
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [isOpen, setIsOpen] = useState(true)
+  const [optionAEmoji, setOptionAEmoji] = useState<string | null>(null)
+  const [optionBEmoji, setOptionBEmoji] = useState<string | null>(null)
   const [tiebreakerEnabled, setTiebreakerEnabled] = useState(false)
   const [tiebreakerAnswer, setTiebreakerAnswer] = useState<number | ''>('')
   const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
@@ -139,6 +142,8 @@ export default function AdminPage() {
     }
     payload.option_a_label = optionALabel.trim()
     payload.option_b_label = optionBLabel.trim()
+    payload.option_a_emoji = optionAEmoji ?? null
+    payload.option_b_emoji = optionBEmoji ?? null
     if (tiebreakerEnabled) payload.tiebreaker_prompt = tiebreakerPrompt.trim()
     if (optionALabel.trim()) payload.option_a_label = optionALabel.trim()
     if (optionBLabel.trim()) payload.option_b_label = optionBLabel.trim()
@@ -173,6 +178,8 @@ export default function AdminPage() {
       setIsOpen(true)
       setOptionALabel('')
       setOptionBLabel('')
+      setOptionAEmoji(null)
+      setOptionBEmoji(null)
       setTiebreakerPrompt('')
       setTiebreakerEnabled(false)
       setTiebreakerAnswer('')
@@ -307,14 +314,20 @@ export default function AdminPage() {
 
             <div>
               <label htmlFor="optionA" className="block text-sm font-medium text-gray-700">Option A label</label>
-              <input id="optionA" value={optionALabel} onChange={(e) => setOptionALabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-              <p className="mt-1 text-xs text-gray-500">Label shown as one of the two choices players pick (e.g. "Mom").</p>
+              <div className="flex items-center space-x-2">
+                <input id="optionA" value={optionALabel} onChange={(e) => setOptionALabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+                <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">Label shown as one of the two choices players pick (e.g. "Mom"). Optional emoji appears before the label.</p>
             </div>
 
             <div>
               <label htmlFor="optionB" className="block text-sm font-medium text-gray-700">Option B label</label>
-              <input id="optionB" value={optionBLabel} onChange={(e) => setOptionBLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-              <p className="mt-1 text-xs text-gray-500">Label shown as the second choice players pick (e.g. "Dad").</p>
+              <div className="flex items-center space-x-2">
+                <input id="optionB" value={optionBLabel} onChange={(e) => setOptionBLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+                <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">Label shown as the second choice players pick (e.g. "Dad"). Optional emoji appears before the label.</p>
             </div>
 
             <div className="flex items-center space-x-4">

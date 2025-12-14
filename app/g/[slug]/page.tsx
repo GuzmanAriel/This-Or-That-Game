@@ -395,7 +395,7 @@ export default function GamePage({ params }: Props) {
                           onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))}
                           disabled={st.saved || !game.is_open}
                         />
-                        <span>{game?.option_a_label ?? 'Option A'}</span>
+                        <span>{game?.option_a_emoji ? game.option_a_emoji + ' ' : ''}{game?.option_a_label ?? 'Option A'}</span>
                       </label>
                       <label className="inline-flex items-center space-x-2">
                         <input
@@ -406,7 +406,7 @@ export default function GamePage({ params }: Props) {
                           onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))}
                           disabled={st.saved || !game.is_open}
                         />
-                        <span>{game?.option_b_label ?? 'Option B'}</span>
+                        <span>{game?.option_b_emoji ? game.option_b_emoji + ' ' : ''}{game?.option_b_label ?? 'Option B'}</span>
                       </label>
                     </div>
                     <div className="px-3 py-1 rounded-md text-sm">

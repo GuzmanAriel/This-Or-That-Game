@@ -7,6 +7,8 @@ export interface Game {
   is_open: boolean
   option_a_label?: string
   option_b_label?: string
+  option_a_emoji?: string
+  option_b_emoji?: string
   tiebreaker_enabled: boolean
   tiebreaker_prompt?: string
   tiebreaker_answer?: string

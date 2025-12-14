@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { title, slug, tiebreaker_enabled, tiebreaker_answer, is_open, option_a_label, option_b_label, tiebreaker_prompt } = body || {}
+  const { title, slug, tiebreaker_enabled, tiebreaker_answer, is_open, option_a_label, option_b_label, option_a_emoji, option_b_emoji, tiebreaker_prompt } = body || {}
 
   if (!title || typeof title !== 'string' || !slug || typeof slug !== 'string') {
     return NextResponse.json({ error: 'Missing required fields: title, slug' }, { status: 400 })
@@ -90,6 +90,8 @@ export async function POST(request: Request) {
     tiebreaker_prompt: tiebreaker_prompt ?? null,
     option_a_label: option_a_label ?? null,
     option_b_label: option_b_label ?? null,
+    option_a_emoji: option_a_emoji ?? null,
+    option_b_emoji: option_b_emoji ?? null,
     created_by: userData.user.id
   }
 
