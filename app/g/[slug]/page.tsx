@@ -360,7 +360,7 @@ export default function GamePage({ params }: Props) {
   // UI
   return (
     <div className="container mx-auto p-8">
-      <h2 className="text-2xl font-semibold">Play: {game.title}</h2>
+      <h2 className="text-2xl font-semibold font-heading">Play: {game.title}</h2>
       <p className="mt-2 text-gray-600">Invite people to: <code className="text-sm">/g/{game.slug}</code></p>
 
       {!game.is_open && (

@@ -207,16 +207,16 @@ export default function AdminPage() {
 
   if (checking) {
     return (
-      <div className="container mx-auto p-8">
-        <h2 className="text-2xl font-semibold">Admin</h2>
+      <div className="container mx-auto px-8 pt-16 pb-8 max-w-lg">
+        <h2 className="text-2xl font-semibold font-heading">Admin Login</h2>
         <p className="mt-4">Loading…</p>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-8">
-      <h2 className="text-2xl font-semibold">Admin</h2>
+    <div className="container mx-auto px-8 pt-16 pb-8 max-w-lg">
+      <h2 className="text-2xl font-semibold font-heading">Admin Login</h2>
 
       {!user ? (
         <form onSubmit={handleSignIn} className="mt-6 max-w-md">
@@ -230,7 +230,7 @@ export default function AdminPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
             />
           </div>
           <div className="mt-4">
@@ -243,7 +243,7 @@ export default function AdminPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
             />
           </div>
           {authError && <p className="mt-2 text-sm text-red-600">{authError}</p>}

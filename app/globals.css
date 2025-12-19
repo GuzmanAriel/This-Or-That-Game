@@ -9,3 +9,43 @@ html, body, #__next {
 body {
   @apply bg-white text-slate-800;
 }
+
+/* Font variables and theme system */
+:root {
+  /* Fallbacks; next/font will populate --font-playfair and --font-inter via the injected class */
+  --font-playfair: ui-serif, Georgia, 'Times New Roman', serif;
+  --font-inter: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+
+  /* Semantic mappings used by Tailwind utilities */
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-inter);
+}
+
+/* Theme overrides via data-theme on <body> */
+body[data-theme='default'] {
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-inter);
+}
+
+body[data-theme='baby-girl'] {
+  /* example: elegant headings, readable body */
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-inter);
+}
+
+body[data-theme='baby-boy'] {
+  /* example: swap fonts for a different feel */
+  --font-heading: var(--font-inter);
+  --font-body: var(--font-playfair);
+}
+
+body[data-theme='wedding'] {
+  /* example: both headings and body use Playfair for a formal look */
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-playfair);
+}
+
+/* Ensure base font uses CSS variable */
+body {
+  font-family: var(--font-body);
+}
