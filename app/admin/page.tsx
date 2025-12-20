@@ -261,7 +261,7 @@ export default function AdminPage() {
 
           {/* new: link to sign up page */}
           <p className="mt-4 text-sm">
-            Don't have an account? <a href="/signup" className="text-indigo-600">Create one</a>
+            Don't have an account? <a href="/signup">Create one</a>
           </p>
         </form>
       ) : (
@@ -409,21 +409,16 @@ export default function AdminPage() {
               <div className="rounded-md border p-3 bg-green-50 text-sm">
                 Game created: <strong>{success.slug}</strong>
                 <div className="mt-2">
-                  <a className="text-indigo-600" href={`/g/${success.slug}`}>/g/{success.slug}</a>
+                  <a href={`/g/${success.slug}`}>/g/{success.slug}</a>
                 </div>
                 <div>
-                  <a className="text-indigo-600" href={`/g/${success.slug}/leaderboard`}>/g/{success.slug}/leaderboard</a>
+                  <a href={`/g/${success.slug}/leaderboard`}>/g/{success.slug}/leaderboard</a>
                 </div>
               </div>
             )}
 
             <div>
-              <button
-                type="submit"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                Create game
-              </button>
+              <button type="submit" className="btn-primary">Create game</button>
             </div>
           </form>
 
@@ -438,7 +433,7 @@ export default function AdminPage() {
                 {games.map((g) => (
                   <li key={g.id} className="flex items-center justify-between rounded-md border p-3">
                     <div>
-                      <a href={`/g/${g.slug}`} className="text-indigo-600 font-medium">{g.title}</a>
+                      <a href={`/g/${g.slug}`} className="font-medium">{g.title}</a>
                       <div className="text-sm text-gray-500">/{g.slug}</div>
                     </div>
                     <div className="flex items-center space-x-3">

@@ -106,7 +106,7 @@ export default function HomePage() {
                 <p className="mt-2 text-gray-600">Create and manage your games.</p>
                 {isAdmin && (
                   <div className="mt-4">
-                    <a href="/admin" className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Go to Admin</a>
+                    <a href="/admin" className="btn-primary">Go to Admin</a>
                   </div>
                 )}
               </div>
@@ -135,12 +135,7 @@ export default function HomePage() {
                 </p>
                 <div className="mt-4">
                     <div className="flex items-center space-x-3">
-                      <a
-                        href="/signup"
-                        className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-                      >
-                        Sign up
-                      </a>
+                      <a href="/signup" className="btn-primary">Sign up</a>
                       <a
                         href="/admin"
                         className="inline-block border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50 transition"

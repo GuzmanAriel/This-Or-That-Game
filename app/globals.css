@@ -20,12 +20,27 @@ body {
   /* Semantic mappings used by Tailwind utilities */
   --font-heading: var(--font-playfair);
   --font-body: var(--font-inter);
+
+  /* Color variables (defaults) */
+  --color-heading: #111827;
+  --color-body: #111827;
 }
 
 /* Theme overrides via data-theme on <body> */
 body[data-theme='default'] {
   --font-heading: var(--font-playfair);
   --font-body: var(--font-inter);
+}
+
+/* Default theme color overrides */
+body[data-theme='default'] {
+  --color-heading: #A82975;
+  --color-body: #444444;
+}
+
+/* Default theme page background for <main> */
+body[data-theme='default'] main {
+  background-color: #F4F3FF;
 }
 
 body[data-theme='baby-girl'] {
@@ -52,7 +67,30 @@ body[data-theme='baby-autumn'] {
   --font-body: var(--font-inter);
 }
 
+/* Primary button for the default theme */
+body[data-theme='default'] .btn-primary,
+:root .btn-primary {
+  @apply text-white px-4 py-2 rounded inline-block text-lg font-medium;
+  background-color: #913572;
+}
+
+body[data-theme='default'] .btn-primary:hover,
+:root .btn-primary:hover {
+  background-color: #7a2f5d;
+}
+
+body[data-theme='default'] .btn-primary:active,
+:root .btn-primary:active {
+  background-color: #6a274a;
+}
+
 /* Ensure base font uses CSS variable */
 body {
   font-family: var(--font-body);
+  color: var(--color-body);
+}
+
+/* Headings should use the theme heading color */
+h1, h2, h3, h4, h5, h6, a {
+  color: var(--color-heading);
 }

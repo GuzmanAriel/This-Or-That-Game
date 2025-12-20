@@ -162,7 +162,7 @@ export default function AdminGamePage() {
         <h2 className="text-xl font-semibold">Admin — Sign in required</h2>
         <p className="mt-4">You must be signed in as an admin to manage this game.</p>
         <div className="mt-4">
-          <a className="text-indigo-600" href="/admin">Go to Admin sign-in</a>
+          <a href="/admin">Go to Admin sign-in</a>
         </div>
       </div>
     )
@@ -291,9 +291,9 @@ export default function AdminGamePage() {
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
             <div>
               <div className="text-sm font-medium">Public play link</div>
-              <div className="mt-1"><a className="text-indigo-600" href={`/g/${game.slug}`}>{`/g/${game.slug}`}</a></div>
+              <div className="mt-1"><a href={`/g/${game.slug}`}>{`/g/${game.slug}`}</a></div>
               <div className="mt-2 text-sm font-medium">Leaderboard</div>
-              <div className="mt-1"><a className="text-indigo-600" href={`/g/${game.slug}/leaderboard`}>{`/g/${game.slug}/leaderboard`}</a></div>
+              <div className="mt-1"><a href={`/g/${game.slug}/leaderboard`}>{`/g/${game.slug}/leaderboard`}</a></div>
             </div>
             <div className="text-center">
               {/* QR code suitable for printing; SITE URL is read from NEXT_PUBLIC_SITE_URL. Uses local qrcode to create a data URI. */}
@@ -328,7 +328,7 @@ export default function AdminGamePage() {
                   <div className="mt-1 text-gray-900">{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <button className="text-sm text-indigo-600" onClick={() => setEditingLabels(true)}>Edit labels</button>
+                  <button className="text-sm" onClick={() => setEditingLabels(true)}>Edit labels</button>
                   <button
                     className="text-sm text-red-600"
                     onClick={handleToggleOpen}
@@ -392,8 +392,8 @@ export default function AdminGamePage() {
             )}
           </div>
           <div className="mt-2 space-x-3">
-            <a className="text-indigo-600" href={`/g/${game.slug}`}>Player link</a>
-            <a className="text-indigo-600" href={`/g/${game.slug}/leaderboard`}>Leaderboard</a>
+            <a href={`/g/${game.slug}`}>Player link</a>
+            <a href={`/g/${game.slug}/leaderboard`}>Leaderboard</a>
           </div>
         </div>
       </div>
@@ -435,7 +435,7 @@ export default function AdminGamePage() {
                   </div>
                   <div className="ml-4 text-right">
                     {!e ? (
-                      <button className="text-sm text-indigo-600 hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'mom' ? 'mom' : 'dad', saving: false } }))}>Edit</button>
+                      <button className="text-sm bt-primary hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'mom' ? 'mom' : 'dad', saving: false } }))}>Edit</button>
                     ) : (
                       <div className="space-x-2">
                         <button className="text-sm text-green-600" onClick={async () => {

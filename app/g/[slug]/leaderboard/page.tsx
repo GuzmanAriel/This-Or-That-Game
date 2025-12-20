@@ -134,7 +134,7 @@ export default function LeaderboardPage({ params }: Props) {
               <div>{s.first_name ?? 'Player'} {s.last_name ?? ''}</div>
               <div className="font-medium">{s.score}</div>
               {isAdmin && (
-                <button className="ml-4 text-sm text-indigo-600" onClick={() => setSelectedPlayer(s.player_id)}>View</button>
+                <button className="ml-4 text-sm" onClick={() => setSelectedPlayer(s.player_id)}>View</button>
               )}
             </li>
           ))}

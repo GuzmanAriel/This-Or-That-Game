@@ -205,7 +205,7 @@ export default function GamePage({ params }: Props) {
           <div className="mt-2">Submissions are no longer accepted. You can still view the leaderboard below.</div>
         </div>
         <div className="mt-6">
-          <a href={`/g/${game.slug}/leaderboard`} className="text-indigo-600">View Leaderboard</a>
+          <a href={`/g/${game.slug}/leaderboard`}>View Leaderboard</a>
         </div>
       </div>
     )
@@ -389,7 +389,7 @@ export default function GamePage({ params }: Props) {
               <input name="last_name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
             </div>
             <div>
-              <button type="submit" className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md" disabled={playerLoading}>
+              <button type="submit" className="btn-primary" disabled={playerLoading}>
                 {playerLoading ? 'Joining…' : 'Start Game'}
               </button>
             </div>
@@ -503,7 +503,7 @@ export default function GamePage({ params }: Props) {
               {game.is_open && (
                 <button
                   onClick={() => handleSubmitAll()}
-                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md"
+                  className="btn-primary"
                   disabled={submittingAll}
                 >
                   {submittingAll ? 'Submitting…' : 'Submit All Answers'}
@@ -511,7 +511,7 @@ export default function GamePage({ params }: Props) {
               )}
 
               {questions.length > 0 && (
-                <a href={`/g/${game.slug}/leaderboard`} className="text-indigo-600">View Leaderboard</a>
+                <a href={`/g/${game.slug}/leaderboard`}>View Leaderboard</a>
               )}
             </div>
         </section>

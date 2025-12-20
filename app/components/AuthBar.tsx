@@ -156,14 +156,14 @@ export default function AuthBar() {
       <div className="container mx-auto px-3 py-5 flex items-center justify-between font-heading">
         {/* Brand / home link */}
         <div className="flex items-center space-x-4">
-          <a href="/" className="text-2xl font-semibold tracking-widest">🎉 This OR That</a>
+          <a href="/" className="text-2xl font-semibold tracking-widest text-white">🎉 This OR That</a>
         </div>
 
         {/* Navigation / menus */}
         <div className="flex items-center space-x-4">
-          <a href="/" className="text-lg font-bold tracking-wider hover:underline">Home</a>
+          <a href="/" className="text-lg font-bold tracking-wider text-white hover:underline">Home</a>
           {isAdmin ? (
-            <a href="/admin" className="text-lg font-bold tracking-wider hover:underline">Admin</a>
+            <a href="/admin" className="text-lg font-bold tracking-wider text-white hover:underline">Admin</a>
           ) : null}
 
           {/* Player games (from localStorage) - shown even when not signed in */}
@@ -181,7 +181,7 @@ export default function AuthBar() {
                   <ul className="space-y-2">
                     {playerGames.map((g) => (
                       <li key={g.id} className="flex items-center justify-between">
-                        <a href={`/g/${g.slug}`} className="text-sm text-indigo-600">{g.title}</a>
+                        <a href={`/g/${g.slug}`} className="text-sm">{g.title}</a>
                         <a href={`/g/${g.slug}/leaderboard`} className="text-xs text-gray-600 hover:underline">Leaderboard</a>
                       </li>
                     ))}
@@ -206,7 +206,7 @@ export default function AuthBar() {
                   <ul className="space-y-2">
                     {adminGames.map((g) => (
                       <li key={g.id} className="flex items-center justify-between">
-                        <a href={`/g/${g.slug}`} className="text-sm text-indigo-600">{g.title}</a>
+                        <a href={`/g/${g.slug}`} className="text-sm">{g.title}</a>
                         <a href={`/admin/g/${g.slug}`} className="text-xs text-gray-600 hover:underline">Manage</a>
                       </li>
                     ))}
@@ -231,7 +231,7 @@ export default function AuthBar() {
                   <ul className="space-y-2">
                     {submittedGames.map((g) => (
                       <li key={g.id} className="flex items-center justify-between">
-                        <a href={`/g/${g.slug}`} className="text-sm text-indigo-600">{g.title}</a>
+                        <a href={`/g/${g.slug}`} className="text-sm">{g.title}</a>
                         <a href={`/g/${g.slug}/leaderboard`} className="text-xs text-gray-600 hover:underline">Leaderboard</a>
                       </li>
                     ))}

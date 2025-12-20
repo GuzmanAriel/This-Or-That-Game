@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${playfair.variable} ${inter.variable} ${cormorant.variable}`}>
       <body data-theme="default" className="font-body">
         <AuthBar />
-        <main className="min-h-screen bg-gray-50 text-gray-900 font-body">
+        <main className="min-h-screen text-gray-900 font-body">
           {children}
         </main>
       </body>

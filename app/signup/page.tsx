@@ -79,7 +79,7 @@ export default function SignUpPage() {
         </div>
 
         <p className="mt-4 text-sm">
-          Already have an account? <a href="/admin" className="text-indigo-600">Sign in</a>
+          Already have an account? <a href="/admin">Sign in</a>
         </p>
       </form>
     </div>
