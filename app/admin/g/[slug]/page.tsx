@@ -373,7 +373,7 @@ export default function AdminGamePage() {
                   </div>
                 )}
                 <div className="flex items-center space-x-2">
-                  <button type="submit" disabled={savingLabels} className="inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white">
+                  <button type="submit" disabled={savingLabels} className="btn-primary">
                     {savingLabels ? 'Saving…' : 'Save'}
                   </button>
                   <button type="button" className="inline-flex items-center px-3 py-1 rounded border" onClick={() => {
@@ -435,7 +435,7 @@ export default function AdminGamePage() {
                   </div>
                   <div className="ml-4 text-right">
                     {!e ? (
-                      <button className="text-sm bt-primary hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'mom' ? 'mom' : 'dad', saving: false } }))}>Edit</button>
+                      <button className="text-sm btn-primary hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'mom' ? 'mom' : 'dad', saving: false } }))}>Edit</button>
                     ) : (
                       <div className="space-x-2">
                         <button className="text-sm text-green-600" onClick={async () => {
@@ -444,7 +444,6 @@ export default function AdminGamePage() {
                           try {
                             const { error } = await supabase.from('questions').update({ prompt: e.prompt.trim(), correct_answer: e.correct }).eq('id', q.id)
                             if (error) throw error
-                            // refresh questions
                             const qResp = await supabase.from('questions').select('*').eq('game_id', game!.id).order('order_index', { ascending: true })
                             setQuestions(qResp.data ?? [])
                             setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })
@@ -486,7 +485,7 @@ export default function AdminGamePage() {
           {formError && <div className="text-sm text-red-600">{formError}</div>}
 
           <div>
-            <button type="submit" disabled={submitting} className="inline-flex items-center px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
+            <button type="submit" disabled={submitting} className="btn-primary mt-4">
               {submitting ? 'Adding…' : 'Add question'}
             </button>
           </div>

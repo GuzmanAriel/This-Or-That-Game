@@ -24,6 +24,7 @@ body {
   /* Color variables (defaults) */
   --color-heading: #111827;
   --color-body: #111827;
+  --color-authbar-text: #ffffff;
 }
 
 /* Theme overrides via data-theme on <body> */
@@ -65,6 +66,30 @@ body[data-theme='baby-autumn'] {
   /* Baby Autumn: warm display font for headings */
   --font-heading: var(--font-cormorant);
   --font-body: var(--font-inter);
+  --color-authbar-text: #fff;
+  --color-body: #8E2908;
+  --color-heading: #8E2908;
+}
+
+body[data-theme='baby-autumn'] main {
+  background-color: #FFF2EE;
+}
+
+.authbar {
+  color: var(--color-authbar-text);
+  background: linear-gradient(64deg, #913572 0%, #295875 100%);
+}
+
+/* Ensure anchors inside the authbar use the authbar text color (override global link color) */
+.authbar a,
+.authbar a:visited {
+  color: var(--color-authbar-text);
+}
+
+/* Override authbar background for baby-autumn theme */
+body[data-theme='baby-autumn'] .authbar {
+  background-image: none;
+  background-color: #DC744E;
 }
 
 /* Primary button for the default theme */
@@ -82,6 +107,20 @@ body[data-theme='default'] .btn-primary:hover,
 body[data-theme='default'] .btn-primary:active,
 :root .btn-primary:active {
   background-color: #6a274a;
+}
+
+/* Primary button colors for baby-autumn theme */
+body[data-theme='baby-autumn'] .btn-primary {
+  background-color: #8E2908;
+  color: #ffffff;
+}
+
+body[data-theme='baby-autumn'] .btn-primary:hover {
+  background-color: #c66541;
+}
+
+body[data-theme='baby-autumn'] .btn-primary:active {
+  background-color: #a85233;
 }
 
 /* Ensure base font uses CSS variable */
