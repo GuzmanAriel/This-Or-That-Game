@@ -1,4 +1,4 @@
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Inter, Playfair_Display, Cormorant_Garamond } from 'next/font/google'
 
 export const inter = Inter({
   subsets: ['latin'],
@@ -10,6 +10,13 @@ export const inter = Inter({
 export const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
+  display: 'swap',
+  weight: ['400','700']
+})
+
+export const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  variable: '--font-cormorant',
   display: 'swap',
   weight: ['400','700']
 })

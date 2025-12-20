@@ -66,6 +66,11 @@ export default function GamePage({ params }: Props) {
         return
       }
       setGame(gData as Game)
+      // apply theme for this game
+      try {
+        const t = (gData as any).theme ?? 'default'
+        document.body.dataset.theme = t
+      } catch (e) {}
       // Select only the public fields to avoid leaking correct answers
       const { data: qData } = await supabase.from('questions').select('id, prompt, order_index, game_id').eq('game_id', (gData as any).id).order('order_index', { ascending: true })
       if (!mounted) return
@@ -79,7 +84,7 @@ export default function GamePage({ params }: Props) {
       setLoading(false)
     }
     load()
-    return () => { mounted = false }
+    return () => { mounted = false; try { document.body.dataset.theme = 'default' } catch (e) {} }
   }, [slug, supabase])
 
       // Restore saved answers from DB and any local draft for this player

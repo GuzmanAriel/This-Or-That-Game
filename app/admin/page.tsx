@@ -25,6 +25,7 @@ export default function AdminPage() {
   const [isOpen, setIsOpen] = useState(true)
   const [optionAEmoji, setOptionAEmoji] = useState<string | null>(null)
   const [optionBEmoji, setOptionBEmoji] = useState<string | null>(null)
+  const [theme, setTheme] = useState<'default' | 'baby-autumn'>('default')
   const [tiebreakerEnabled, setTiebreakerEnabled] = useState(false)
   const [tiebreakerAnswer, setTiebreakerAnswer] = useState<number | ''>('')
   const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
@@ -140,6 +141,7 @@ export default function AdminPage() {
       is_open: Boolean(isOpen),
       tiebreaker_enabled: Boolean(tiebreakerEnabled)
     }
+    payload.theme = theme
     payload.option_a_label = optionALabel.trim()
     payload.option_b_label = optionBLabel.trim()
     payload.option_a_emoji = optionAEmoji ?? null
@@ -180,6 +182,7 @@ export default function AdminPage() {
       setOptionBLabel('')
       setOptionAEmoji(null)
       setOptionBEmoji(null)
+      setTheme('default')
       setTiebreakerPrompt('')
       setTiebreakerEnabled(false)
       setTiebreakerAnswer('')
@@ -215,7 +218,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-8 pt-16 pb-8 max-w-lg">
+    <div className="container mx-auto px-8 pt-16 pb-8 max-w-2xl">
       <h2 className="text-2xl font-semibold font-heading">Admin Login</h2>
 
       {!user ? (
@@ -310,6 +313,22 @@ export default function AdminPage() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               />
               <p className="mt-1 text-xs text-gray-500">Used in the URL <span className="font-mono">/g/[slug]</span>. Make it unique, lowercase, and URL-friendly (use hyphens).</p>
+            </div>
+
+            <div>
+              <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
+                Theme
+              </label>
+              <select
+                id="theme"
+                value={theme}
+                onChange={(e) => setTheme(e.target.value as 'default' | 'baby-autumn')}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
+              >
+                <option value="default">Default</option>
+                <option value="baby-autumn">Baby Autumn</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">Choose a visual theme for this game. "Baby Autumn" uses a warm display font.</p>
             </div>
 
             <div>

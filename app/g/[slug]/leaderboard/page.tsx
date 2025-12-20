@@ -29,7 +29,7 @@ export default function LeaderboardPage({ params }: Props) {
       setError(null)
       try {
         // fetch game, players, questions, answers and current user
-        const { data: gData, error: gErr } = await supabase.from('games').select('id,created_by,option_a_label,option_b_label,tiebreaker_answer').eq('slug', slug).limit(1).maybeSingle()
+        const { data: gData, error: gErr } = await supabase.from('games').select('id,created_by,option_a_label,option_b_label,tiebreaker_answer,theme').eq('slug', slug).limit(1).maybeSingle()
         if (gErr) throw gErr
         if (!gData) {
           setError('Game not found')
@@ -41,6 +41,8 @@ export default function LeaderboardPage({ params }: Props) {
         setGameOptionA((gData as any).option_a_label ?? null)
         setGameOptionB((gData as any).option_b_label ?? null)
         setGameTiebreakerAnswer((gData as any).tiebreaker_answer ?? null)
+        // apply theme for this page
+        try { document.body.dataset.theme = (gData as any).theme ?? 'default' } catch (e) {}
 
         const [{ data: pData }, { data: qData }, { data: aData }, userResp] = await Promise.all([
           supabase.from('players').select('*').eq('game_id', gameId),
@@ -114,7 +116,7 @@ export default function LeaderboardPage({ params }: Props) {
       }
     }
     load()
-    return () => { mounted = false }
+    return () => { mounted = false; try { document.body.dataset.theme = 'default' } catch (e) {} }
   }, [slug, supabase])
 
   if (loading) return <div className="p-8">Loading…</div>
