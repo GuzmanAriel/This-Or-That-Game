@@ -96,6 +96,11 @@ body[data-theme='baby-autumn'] main {
   color: var(--color-authbar-text);
 }
 
+.authbar .mobile-menu a,
+.authbar .mobile-menu a:visited, .authbar .mobile-menu div{
+  color: var(--color-heading);
+}
+
 /* Override authbar background for baby-autumn theme */
 body[data-theme='baby-autumn'] .authbar {
   background-image: none;
