@@ -365,9 +365,22 @@ export default function GamePage({ params }: Props) {
   // UI
   return (
     <div className="container mx-auto p-8 max-w-3xl">
-      <h2 className="text-4xl font-bold font-heading">Play: {game.title}</h2>
-      <p className="mt-2 text-gray-600">Please enter your first and last name to start the game.</p>
-      <p className="mt-2 text-gray-600">Invite people to: <code className="text-sm">/g/{game.slug}</code></p>
+      <h2 className="text-5xl font-bold font-heading">Play: {game.title}</h2>
+      {!playerId ? (
+        <p className="mt-2 text-gray-600">Please enter your first and last name to start the game.</p>
+      ) : (
+        <div className="mt-3 text-gray-600 text-2xl">
+          <p>Answer {game?.option_a_emoji ? game.option_a_emoji + ' ' : ''}{game?.option_a_label ?? 'Option A'} or {game?.option_b_emoji ? game.option_b_emoji + ' ' : ''}{game?.option_b_label ?? 'Option B'} for each question.</p>
+          <p className="mt-3">Each correct answer earns one point. The player with the most correct answers wins the game.</p>
+          {game?.tiebreaker_enabled && game?.tiebreaker_prompt && (
+            <div className="mt-3">
+              <p className="font-medium">Tiebreaker: {game.tiebreaker_prompt}</p>
+              <p className="mt-1">Enter a numeric guess. When players are tied, the player whose guess is closest to the correct answer wins the tie (exact answer is not shown).</p>
+            </div>
+          )}
+        </div>
+      )}
+      <p className="mt-5 text-gray-600 text-2xl">Invite people to: <code className="text-2xl">/g/{game.slug}</code></p>
 
       {!game.is_open && (
         <div className="mt-4 rounded-md bg-red-50 border border-red-200 p-3 text-red-700">
