@@ -218,7 +218,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-8 pt-16 pb-8 max-w-2xl">
+    <div className="container mx-auto px-8 pt-16 pb-8">
       <h2 className="text-2xl font-semibold font-heading">Admin Login</h2>
 
       {!user ? (
@@ -265,185 +265,189 @@ export default function AdminPage() {
           </p>
         </form>
       ) : (
-        <div className="mt-6 space-y-6">
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <div className="text-sm">Logged in as <strong>{user.email}</strong></div>
-            <button
-              onClick={handleSignOut}
-              className="text-sm text-red-600 hover:underline"
-            >
-              Log out
-            </button>
-          </div>
-
-          <form onSubmit={handleCreateGame} className="max-w-lg space-y-4">
-            <div className="rounded-md border p-3 bg-gray-50 text-sm text-gray-700">
-              <div className="font-medium">Field guide</div>
-              <div className="mt-2 space-y-1">
-                <div>• <strong>Title</strong>: Display name shown to players and on leaderboards.</div>
-                <div>• <strong>Slug</strong>: URL identifier used at <span className="font-mono">/g/[slug]</span>; use lowercase and hyphens.</div>
-                <div>• <strong>Option A / Option B</strong>: The two choices players will pick between.</div>
-                <div>• <strong>Open</strong>: When enabled players can submit responses; when disabled the game is closed to submissions.</div>
-                <div>• <strong>Tiebreaker</strong>: Optional numeric question to break ties — provide a prompt and the correct number.</div>
-              </div>
-            </div>
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                Title
-              </label>
-              <input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
-              />
-              <p className="mt-1 text-xs text-gray-500">Displayed on the public game page and leaderboards.</p>
-            </div>
-
-            <div>
-              <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-                Slug
-              </label>
-              <input
-                id="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase())}
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
-              />
-              <p className="mt-1 text-xs text-gray-500">Used in the URL <span className="font-mono">/g/[slug]</span>. Make it unique, lowercase, and URL-friendly (use hyphens).</p>
-            </div>
-
-            <div>
-              <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
-                Theme
-              </label>
-              <select
-                id="theme"
-                value={theme}
-                onChange={(e) => setTheme(e.target.value as 'default' | 'baby-autumn')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
+        <div>
+          <div className="flex items-center justify-between rounded-md border p-3 mt-4">
+              <div className="text-sm">Logged in as <strong>{user.email}</strong></div>
+              <button
+                onClick={handleSignOut}
+                className="text-sm text-red-600 hover:underline"
               >
-                <option value="default">Default</option>
-                <option value="baby-autumn">Baby Autumn</option>
-              </select>
-              <p className="mt-1 text-xs text-gray-500">Choose a visual theme for this game. "Baby Autumn" uses a warm display font.</p>
+                Log out
+              </button>
             </div>
+        
+          <div className="mt-6 flex flex-col md:flex-row md:items-start md:space-x-12">
+            <div className="md:w-1/2 order-last md:order-first space-y-6">
 
-            <div>
-              <label htmlFor="optionA" className="block text-sm font-medium text-gray-700">Option A label</label>
-              <div className="flex items-center space-x-2">
-                <input id="optionA" value={optionALabel} onChange={(e) => setOptionALabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">Label shown as one of the two choices players pick (e.g. "Mom"). Optional emoji appears before the label.</p>
-            </div>
-
-            <div>
-              <label htmlFor="optionB" className="block text-sm font-medium text-gray-700">Option B label</label>
-              <div className="flex items-center space-x-2">
-                <input id="optionB" value={optionBLabel} onChange={(e) => setOptionBLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">Label shown as the second choice players pick (e.g. "Dad"). Optional emoji appears before the label.</p>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={isOpen}
-                  onChange={(e) => setIsOpen(e.target.checked)}
-                  className="rounded p-2"
-                />
-                <span className="text-sm">Open</span>
-              </label>
-              <p className="mt-1 text-xs text-gray-500">When checked, players can submit answers to this game. Uncheck to close submissions.</p>
-
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={tiebreakerEnabled}
-                  onChange={(e) => setTiebreakerEnabled(e.target.checked)}
-                  className="rounded p-2"
-                />
-                <span className="text-sm">Tiebreaker enabled</span>
-              </label>
-              <p className="mt-1 text-xs text-gray-500">Enable an optional numeric tiebreaker question to rank guesses when players tie.</p>
-            </div>
-
-            {tiebreakerEnabled && (
-              <div className="space-y-3">
+              <form onSubmit={handleCreateGame} className="space-y-4">
+                <div className="rounded-md border p-3 bg-gray-50 text-sm text-gray-700">
+                  <div className="font-medium">Field guide</div>
+                  <div className="mt-2 space-y-1">
+                    <div>• <strong>Title</strong>: Display name shown to players and on leaderboards.</div>
+                    <div>• <strong>Slug</strong>: URL identifier used at <span className="font-mono">/g/[slug]</span>; use lowercase and hyphens.</div>
+                    <div>• <strong>Option A / Option B</strong>: The two choices players will pick between.</div>
+                    <div>• <strong>Open</strong>: When enabled players can submit responses; when disabled the game is closed to submissions.</div>
+                    <div>• <strong>Tiebreaker</strong>: Optional numeric question to break ties — provide a prompt and the correct number.</div>
+                  </div>
+                </div>
                 <div>
-                  <label htmlFor="tiebreakerPrompt" className="block text-sm font-medium text-gray-700">
-                    Tiebreaker question
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                    Title
                   </label>
                   <input
-                    id="tiebreakerPrompt"
-                    type="text"
-                    value={tiebreakerPrompt}
-                    onChange={(e) => setTiebreakerPrompt(e.target.value)}
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Short prompt shown to players (e.g. "How many candies are in the jar?").</p>
+                  <p className="mt-1 text-xs text-gray-500">Displayed on the public game page and leaderboards.</p>
                 </div>
+
                 <div>
-                  <label htmlFor="tiebreaker" className="block text-sm font-medium text-gray-700">
-                    Tiebreaker answer (number)
+                  <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
+                    Slug
                   </label>
                   <input
-                    id="tiebreaker"
-                    type="number"
-                    value={tiebreakerAnswer}
-                    onChange={(e) => setTiebreakerAnswer(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm p-2"
+                    id="slug"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase())}
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
                   />
-                  <p className="mt-1 text-xs text-gray-500">The numeric correct answer used to rank tiebreaker guesses (required if tiebreaker enabled).</p>
+                  <p className="mt-1 text-xs text-gray-500">Used in the URL <span className="font-mono">/g/[slug]</span>. Make it unique, lowercase, and URL-friendly (use hyphens).</p>
                 </div>
-              </div>
-            )}
 
-            {formError && <p className="text-sm text-red-600">{formError}</p>}
-            {success && (
-              <div className="rounded-md border p-3 bg-green-50 text-sm">
-                Game created: <strong>{success.slug}</strong>
-                <div className="mt-2">
-                  <a href={`/g/${success.slug}`}>/g/{success.slug}</a>
-                </div>
                 <div>
-                  <a href={`/g/${success.slug}/leaderboard`}>/g/{success.slug}/leaderboard</a>
+                  <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
+                    Theme
+                  </label>
+                  <select
+                    id="theme"
+                    value={theme}
+                    onChange={(e) => setTheme(e.target.value as 'default' | 'baby-autumn')}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
+                  >
+                    <option value="default">Default</option>
+                    <option value="baby-autumn">Baby Autumn</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">Choose a visual theme for this game. "Baby Autumn" uses a warm display font.</p>
                 </div>
-              </div>
-            )}
 
-            <div>
-              <button type="submit" className="btn-primary">Create game</button>
-            </div>
-          </form>
+                <div>
+                  <label htmlFor="optionA" className="block text-sm font-medium text-gray-700">Option A label</label>
+                  <div className="flex items-center space-x-2">
+                    <input id="optionA" value={optionALabel} onChange={(e) => setOptionALabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                    <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Label shown as one of the two choices players pick (e.g. "Mom"). Optional emoji appears before the label.</p>
+                </div>
 
-          <div className="mt-6">
-            <h3 className="text-lg font-medium">Your games</h3>
-            {gamesLoading ? (
-              <p className="mt-2">Loading games…</p>
-            ) : games.length === 0 ? (
-              <p className="mt-2 text-sm text-gray-500">You haven't created any games yet.</p>
-            ) : (
-              <ul className="mt-4 space-y-3">
-                {games.map((g) => (
-                  <li key={g.id} className="flex items-center justify-between rounded-md border p-3">
+                <div>
+                  <label htmlFor="optionB" className="block text-sm font-medium text-gray-700">Option B label</label>
+                  <div className="flex items-center space-x-2">
+                    <input id="optionB" value={optionBLabel} onChange={(e) => setOptionBLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                    <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Label shown as the second choice players pick (e.g. "Dad"). Optional emoji appears before the label.</p>
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={isOpen}
+                      onChange={(e) => setIsOpen(e.target.checked)}
+                      className="rounded p-2"
+                    />
+                    <span className="text-sm">Open</span>
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500">When checked, players can submit answers to this game. Uncheck to close submissions.</p>
+
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={tiebreakerEnabled}
+                      onChange={(e) => setTiebreakerEnabled(e.target.checked)}
+                      className="rounded p-2"
+                    />
+                    <span className="text-sm">Tiebreaker enabled</span>
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500">Enable an optional numeric tiebreaker question to rank guesses when players tie.</p>
+                </div>
+
+                {tiebreakerEnabled && (
+                  <div className="space-y-3">
                     <div>
-                      <a href={`/g/${g.slug}`} className="font-medium">{g.title}</a>
-                      <div className="text-sm text-gray-500">/{g.slug}</div>
+                      <label htmlFor="tiebreakerPrompt" className="block text-sm font-medium text-gray-700">
+                        Tiebreaker question
+                      </label>
+                      <input
+                        id="tiebreakerPrompt"
+                        type="text"
+                        value={tiebreakerPrompt}
+                        onChange={(e) => setTiebreakerPrompt(e.target.value)}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">Short prompt shown to players (e.g. "How many candies are in the jar?").</p>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <a href={`/admin/g/${g.slug}`} className="text-sm text-gray-700 hover:underline">Manage</a>
-                      <a href={`/g/${g.slug}/leaderboard`} className="text-sm text-gray-700 hover:underline">Leaderboard</a>
+                    <div>
+                      <label htmlFor="tiebreaker" className="block text-sm font-medium text-gray-700">
+                        Tiebreaker answer (number)
+                      </label>
+                      <input
+                        id="tiebreaker"
+                        type="number"
+                        value={tiebreakerAnswer}
+                        onChange={(e) => setTiebreakerAnswer(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm p-2"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">The numeric correct answer used to rank tiebreaker guesses (required if tiebreaker enabled).</p>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+                  </div>
+                )}
+
+                {formError && <p className="text-sm text-red-600">{formError}</p>}
+                {success && (
+                  <div className="rounded-md border p-3 bg-green-50 text-sm">
+                    Game created: <strong>{success.slug}</strong>
+                    <div className="mt-2">
+                      <a href={`/g/${success.slug}`}>/g/{success.slug}</a>
+                    </div>
+                    <div>
+                      <a href={`/g/${success.slug}/leaderboard`}>/g/{success.slug}/leaderboard</a>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <button type="submit" className="btn-primary">Create game</button>
+                </div>
+              </form>
+            </div>
+            <div className="md:w-1/2 order-first md:order-last mb-4 md:mb-0">
+              <h3 className="text-2xl font-bold font-heading">Your games</h3>
+              {gamesLoading ? (
+                <p className="mt-2">Loading games…</p>
+              ) : games.length === 0 ? (
+                <p className="mt-2 text-sm text-gray-500">You haven't created any games yet.</p>
+              ) : (
+                <ul className="mt-4 space-y-3">
+                  {games.map((g) => (
+                    <li key={g.id} className="flex items-center justify-between rounded-md border p-3">
+                      <div>
+                        <a href={`/g/${g.slug}`} className="font-medium">{g.title}</a>
+                        <div className="text-sm text-gray-500">/{g.slug}</div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <a href={`/admin/g/${g.slug}`} className="text-sm text-gray-700 hover:underline">Manage</a>
+                        <a href={`/g/${g.slug}/leaderboard`} className="text-sm text-gray-700 hover:underline">Leaderboard</a>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       )}
