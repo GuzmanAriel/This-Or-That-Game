@@ -1,6 +1,7 @@
 import './globals.css'
 import React from 'react'
 import AuthBar from './components/AuthBar'
+import RootClient from './RootClient'
 import { inter, playfair, cormorant } from './fonts'
 
 export const metadata = {
@@ -13,9 +14,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${playfair.variable} ${inter.variable} ${cormorant.variable}`}>
       <body data-theme="default" className="font-body">
         <AuthBar />
-        <main className="min-h-screen text-gray-900 font-body relative">
-          {children}
-        </main>
+        <RootClient>
+          <main className="min-h-screen text-gray-900 font-body relative">
+            {children}
+          </main>
+        </RootClient>
       </body>
     </html>
   )
