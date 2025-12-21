@@ -364,8 +364,8 @@ export default function GamePage({ params }: Props) {
 
   // UI
   return (
-    <div className="container mx-auto p-8">
-      <h2 className="text-2xl font-semibold font-heading">Play: {game.title}</h2>
+    <div className="container mx-auto p-8 max-w-3xl">
+      <h2 className="text-4xl font-bold font-heading">Play: {game.title}</h2>
       <p className="mt-2 text-gray-600">Invite people to: <code className="text-sm">/g/{game.slug}</code></p>
 
       {!game.is_open && (
@@ -378,7 +378,7 @@ export default function GamePage({ params }: Props) {
       {/* If no playerId, show join form */}
       {!playerId ? (
         <section className="mt-6 max-w-md">
-          <h3 className="text-lg font-medium">Join game</h3>
+          <h3 className="text-xl font-medium">Join game</h3>
           <form onSubmit={handleJoin} className="mt-4 space-y-3">
             <div>
               <label className="block text-sm font-medium">First name</label>
@@ -397,41 +397,37 @@ export default function GamePage({ params }: Props) {
         </section>
       ) : (
         // Player exists: show questions and answer inputs
-        <section className="mt-6">
-          <h3 className="text-lg font-semibold">Questions</h3>
-          <ul className="mt-3 space-y-3">
-            {questions.length === 0 && <li className="text-sm text-gray-600">No questions yet</li>}
-            {questions.map((q) => {
+        <section className="mt-8">
+          <h3 className="text-2xl font-semibold">Questions</h3>
+          <ul className="mt-3 space-y-5">
+            {questions.length === 0 && <li className="text-lg text-gray-600">No questions yet</li>}
+                {questions.map((q) => {
               const st = answersState[q.id] ?? { value: '', loading: false }
               return (
-                <li key={q.id} className="rounded border p-3">
-                  <div className="text-sm text-gray-500">#{q.order_index}</div>
-                  <div className="mt-1 font-medium">{q.prompt}</div>
+                <li key={q.id} className="rounded px-5 py-8 question-card">
+                  <h4 className="text-lg font-bold">Question {q.order_index + 1}</h4>
+                  <div className="mt-1 font-medium text-lg">{q.prompt}</div>
                   <div className="mt-3 flex items-center space-x-2">
                     <div className="flex items-center space-x-4">
                       {/* Use game's option labels dynamically; store values as 'A'/'B' */}
-                      <label className="inline-flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          name={`answer-${q.id}`}
-                          value="A"
-                          checked={st.value === 'A'}
-                          onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))}
-                          disabled={st.saved || !game.is_open}
-                        />
+                      <button
+                        type="button"
+                        onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))}
+                        disabled={st.saved || !game.is_open}
+                        aria-pressed={st.value === 'A'}
+                        className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${st.value === 'A' ? 'selected' : ''}`}
+                      >
                         <span>{game?.option_a_emoji ? game.option_a_emoji + ' ' : ''}{game?.option_a_label ?? 'Option A'}</span>
-                      </label>
-                      <label className="inline-flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          name={`answer-${q.id}`}
-                          value="B"
-                          checked={st.value === 'B'}
-                          onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))}
-                          disabled={st.saved || !game.is_open}
-                        />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))}
+                        disabled={st.saved || !game.is_open}
+                        aria-pressed={st.value === 'B'}
+                        className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${st.value === 'B' ? 'selected' : ''}`}
+                      >
                         <span>{game?.option_b_emoji ? game.option_b_emoji + ' ' : ''}{game?.option_b_label ?? 'Option B'}</span>
-                      </label>
+                      </button>
                     </div>
                     <div className="px-3 py-1 rounded-md text-sm">
                       {st.saved ? (

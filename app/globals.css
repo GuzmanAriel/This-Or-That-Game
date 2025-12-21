@@ -24,6 +24,8 @@ body {
   /* Color variables (defaults) */
   --color-heading: #111827;
   --color-body: #111827;
+  --color-border: #A82975;
+  --color-question-bg: #ebe9fb;
   --color-authbar-text: #ffffff;
 }
 
@@ -31,6 +33,7 @@ body {
 body[data-theme='default'] {
   --font-heading: var(--font-playfair);
   --font-body: var(--font-inter);
+  --color-border: #A82975;
 }
 
 /* Default theme color overrides */
@@ -69,10 +72,15 @@ body[data-theme='baby-autumn'] {
   --color-authbar-text: #fff;
   --color-body: #8E2908;
   --color-heading: #8E2908;
+  --color-border: #8E2908;
+  --color-question-bg: #ffede8;
 }
 
 body[data-theme='baby-autumn'] main {
   background-color: #FFF2EE;
+  background-image: url('/images/baby-autumn-bg.png');
+  background-repeat: repeat;
+  background-position: 0 0;
 }
 
 .authbar {
@@ -121,6 +129,41 @@ body[data-theme='baby-autumn'] .btn-primary:hover {
 
 body[data-theme='baby-autumn'] .btn-primary:active {
   background-color: #a85233;
+}
+
+/* Make default border width 2px app-wide */
+.border {
+  border-width: 2px;
+}
+
+/* Helper to use theme border color */
+.themed-border {
+  border-color: var(--color-border);
+}
+
+/* Question card background driven by theme variable */
+.question-card {
+  background-color: var(--color-question-bg);
+}
+
+/* Option button base + theme-aware selected state */
+.option-button {
+  background-color: #ffffff;
+  color: var(--color-body);
+  border-color: #d1d5db; /* gray-300 */
+}
+.option-button.selected {
+  color: #ffffff;
+}
+
+body[data-theme='default'] .option-button.selected {
+  background-color: #295875;
+  border-color: #295875;
+}
+
+body[data-theme='baby-autumn'] .option-button.selected {
+  background-color: #DC744E;
+  border-color: #DC744E;
 }
 
 /* Ensure base font uses CSS variable */
