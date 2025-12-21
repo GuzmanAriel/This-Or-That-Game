@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from 'react'
 import { getSupabaseClient } from '../../lib/supabase'
+import MobileMenu from './MobileMenu'
 
 export default function AuthBar() {
   const supabase = getSupabaseClient()
   const [user, setUser] = useState<any | null>(null)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   // Menu data for admin-created games and games this user submitted to
   const [adminGames, setAdminGames] = useState<any[]>([])
@@ -159,16 +161,16 @@ export default function AuthBar() {
         </div>
 
         {/* Navigation / menus */}
-          <div className="flex items-center space-x-4">
-          <a href="/" className="text-lg font-bold tracking-wider hover:underline">Home</a>
-          {isAdmin ? (
-            <a href="/admin" className="text-lg font-bold tracking-wider hover:underline">Admin</a>
-          ) : null}
+          <div className="flex items-center space-x-4 desktop-nav">
+            <a href="/" className="text-md font-bold tracking-wider hover:underline">Home</a>
+            {isAdmin ? (
+              <a href="/admin" className="text-md font-bold tracking-wider hover:underline">Admin</a>
+            ) : null}
 
           {/* Player games (from localStorage) - shown even when not signed in */}
           {playerGames.length > 0 && (
             <div className="relative">
-              <button className="text-lg font-bold tracking-wider hover:underline">Player Games</button>
+              <button className="text-md font-bold tracking-wider hover:underline">Player Games</button>
               <div className="absolute right-0 top-full mt-0 w-64 bg-white border rounded shadow z-10 p-4 submenu">
                 <div className="text-md mb-2 font-bold text-gray-500">Games you're part of</div>
                 <ul className="space-y-2">
@@ -185,7 +187,7 @@ export default function AuthBar() {
           {/* Admin-created games dropdown */}
           {adminGames.length > 0 && (
             <div className="relative">
-              <button className="text-lg font-bold tracking-wider hover:underline">Your Games</button>
+              <button className="text-md font-bold tracking-wider hover:underline">Your Games</button>
               <div className="absolute right-0 top-full mt-0 w-60 bg-white border rounded shadow z-10 p-2 submenu">
                 <div className="text-md mb-2 font-bold text-gray-500">Created by you</div>
                 <ul className="space-y-2">
@@ -203,7 +205,7 @@ export default function AuthBar() {
           {/* Submitted games dropdown */}
           {submittedGames.length > 0 && (
             <div className="relative">
-              <button className="text-lg font-bold tracking-wider hover:underline">Your Submissions</button>
+              <button className="text-md font-bold tracking-wider hover:underline">Your Submissions</button>
               <div className="absolute right-0 top-full mt-0 w-60 bg-white border rounded shadow z-10 p-2 submenu">
                 <div className="text-xs text-gray-500 mb-2">Games you've submitted to</div>
                 <ul className="space-y-2">
@@ -235,7 +237,34 @@ export default function AuthBar() {
               </>
             )}
           </div>
+         
         </div>
+         <button
+            onClick={() => setMobileOpen((s) => !s)}
+            aria-expanded={mobileOpen}
+            aria-label="Toggle navigation"
+            className="mobile-toggle p-2 rounded"
+          >
+            {mobileOpen ? (
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        <MobileMenu
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          user={user}
+          isAdmin={isAdmin}
+          playerGames={playerGames}
+          adminGames={adminGames}
+          submittedGames={submittedGames}
+          onSignOut={handleSignOut}
+        />
       </div>
     </div>
   )
