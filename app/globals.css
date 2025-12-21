@@ -153,9 +153,19 @@ body[data-theme='baby-autumn'] .btn-primary:active {
 .submenu a,
 .submenu a:visited {
   color: var(--color-submenu-text);
+  font-weight: 700;
 }
 
 /* Option button base + theme-aware selected state */
+
+/* Dropdowns: hidden by default, shown on hover or focus-within for accessibility */
+.submenu {
+  display: none;
+}
+.relative:hover .submenu,
+.relative:focus-within .submenu {
+  display: block;
+}
 .option-button {
   background-color: #ffffff;
   color: var(--color-body);

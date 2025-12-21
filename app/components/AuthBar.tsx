@@ -11,8 +11,7 @@ export default function AuthBar() {
   const [adminGames, setAdminGames] = useState<any[]>([])
   const [submittedGames, setSubmittedGames] = useState<any[]>([])
   const [loadingMenus, setLoadingMenus] = useState(false)
-  const [adminOpen, setAdminOpen] = useState(false)
-  const [subsOpen, setSubsOpen] = useState(false)
+  
   const [playerGameIds, setPlayerGameIds] = useState<string[]>([])
   const [playerGames, setPlayerGames] = useState<any[]>([])
   const [playersOpen, setPlayersOpen] = useState(false)
@@ -169,74 +168,53 @@ export default function AuthBar() {
           {/* Player games (from localStorage) - shown even when not signed in */}
           {playerGames.length > 0 && (
             <div className="relative">
-              <button
-                onClick={() => setPlayersOpen((s) => !s)}
-                className="text-lg font-bold tracking-wider hover:underline"
-              >
-                Player Games
-              </button>
-              {playersOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white border rounded shadow z-10 p-4 submenu">
-                  <div className="text-md mb-2 font-bold text-gray-500">Games you're part of</div>
-                  <ul className="space-y-2">
-                    {playerGames.map((g) => (
-                      <li key={g.id} className="flex items-center justify-between">
-                        <a href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <button className="text-lg font-bold tracking-wider hover:underline">Player Games</button>
+              <div className="absolute right-0 top-full mt-0 w-64 bg-white border rounded shadow z-10 p-4 submenu">
+                <div className="text-md mb-2 font-bold text-gray-500">Games you're part of</div>
+                <ul className="space-y-2">
+                  {playerGames.map((g) => (
+                    <li key={g.id} className="flex items-center justify-between">
+                      <a href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
 
           {/* Admin-created games dropdown */}
           {adminGames.length > 0 && (
             <div className="relative">
-              <button
-                onClick={() => setAdminOpen((s) => !s)}
-                className="text-lg font-bold tracking-wider hover:underline"
-              >
-                Your Games
-              </button>
-              {adminOpen && (
-                <div className="absolute right-0 mt-2 w-60 bg-white border rounded shadow z-10 p-2 submenu">
-                  <div className="text-md mb-2 font-bold text-gray-500">Created by you</div>
-                  <ul className="space-y-2">
-                    {adminGames.map((g) => (
-                      <li key={g.id} className="flex items-center justify-between">
-                        <a href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</a>
-                        <a href={`/admin/g/${g.slug}`} className="text-xs text-gray-600 hover:underline">Manage</a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <button className="text-lg font-bold tracking-wider hover:underline">Your Games</button>
+              <div className="absolute right-0 top-full mt-0 w-60 bg-white border rounded shadow z-10 p-2 submenu">
+                <div className="text-md mb-2 font-bold text-gray-500">Created by you</div>
+                <ul className="space-y-2">
+                  {adminGames.map((g) => (
+                    <li key={g.id} className="flex items-center justify-between">
+                      <a href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</a>
+                      <a href={`/admin/g/${g.slug}`} className="text-xs text-gray-600 hover:underline">Manage</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
 
           {/* Submitted games dropdown */}
           {submittedGames.length > 0 && (
             <div className="relative">
-              <button
-                onClick={() => setSubsOpen((s) => !s)}
-                className="text-lg font-bold tracking-wider hover:underline"
-              >
-                Your Submissions
-              </button>
-              {subsOpen && (
-                <div className="absolute right-0 mt-2 w-60 bg-white border rounded shadow z-10 p-2 submenu">
-                  <div className="text-xs text-gray-500 mb-2">Games you've submitted to</div>
-                  <ul className="space-y-2">
-                    {submittedGames.map((g) => (
-                      <li key={g.id} className="flex items-center justify-between">
-                        <a href={`/g/${g.slug}`} className="text-sm">{g.title}</a>
-                        <a href={`/g/${g.slug}/leaderboard`} className="text-xs text-gray-600 hover:underline">Leaderboard</a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <button className="text-lg font-bold tracking-wider hover:underline">Your Submissions</button>
+              <div className="absolute right-0 top-full mt-0 w-60 bg-white border rounded shadow z-10 p-2 submenu">
+                <div className="text-xs text-gray-500 mb-2">Games you've submitted to</div>
+                <ul className="space-y-2">
+                  {submittedGames.map((g) => (
+                    <li key={g.id} className="flex items-center justify-between">
+                      <a href={`/g/${g.slug}`} className="text-sm">{g.title}</a>
+                      <a href={`/g/${g.slug}/leaderboard`} className="text-xs text-gray-600 hover:underline">Leaderboard</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
 
