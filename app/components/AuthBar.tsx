@@ -176,13 +176,12 @@ export default function AuthBar() {
                 Player Games
               </button>
               {playersOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white border rounded shadow z-10 p-2">
-                  <div className="text-xs text-gray-500 mb-2">Games you're part of</div>
+                <div className="absolute right-0 mt-2 w-64 bg-white border rounded shadow z-10 p-4 submenu">
+                  <div className="text-md mb-2 font-bold text-gray-500">Games you're part of</div>
                   <ul className="space-y-2">
                     {playerGames.map((g) => (
                       <li key={g.id} className="flex items-center justify-between">
-                        <a href={`/g/${g.slug}`} className="text-sm">{g.title}</a>
-                        <a href={`/g/${g.slug}/leaderboard`} className="text-xs text-gray-600 hover:underline">Leaderboard</a>
+                        <a href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</a>
                       </li>
                     ))}
                   </ul>
@@ -201,12 +200,12 @@ export default function AuthBar() {
                 Your Games
               </button>
               {adminOpen && (
-                <div className="absolute right-0 mt-2 w-60 bg-white border rounded shadow z-10 p-2">
-                  <div className="text-xs text-gray-500 mb-2">Created by you</div>
+                <div className="absolute right-0 mt-2 w-60 bg-white border rounded shadow z-10 p-2 submenu">
+                  <div className="text-md mb-2 font-bold text-gray-500">Created by you</div>
                   <ul className="space-y-2">
                     {adminGames.map((g) => (
                       <li key={g.id} className="flex items-center justify-between">
-                        <a href={`/g/${g.slug}`} className="text-sm">{g.title}</a>
+                        <a href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</a>
                         <a href={`/admin/g/${g.slug}`} className="text-xs text-gray-600 hover:underline">Manage</a>
                       </li>
                     ))}
@@ -226,7 +225,7 @@ export default function AuthBar() {
                 Your Submissions
               </button>
               {subsOpen && (
-                <div className="absolute right-0 mt-2 w-60 bg-white border rounded shadow z-10 p-2">
+                <div className="absolute right-0 mt-2 w-60 bg-white border rounded shadow z-10 p-2 submenu">
                   <div className="text-xs text-gray-500 mb-2">Games you've submitted to</div>
                   <ul className="space-y-2">
                     {submittedGames.map((g) => (
@@ -244,7 +243,6 @@ export default function AuthBar() {
           <div className="flex items-center space-x-3">
             {user ? (
               <>
-                <div className="text-lg font-bold tracking-wider">{user.email}</div>
                 {!isAdmin && (
                   <a href="/signup" className="text-lg font-bold">Sign up</a>
                 )}

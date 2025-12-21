@@ -27,6 +27,7 @@ body {
   --color-border: #A82975;
   --color-question-bg: #ebe9fb;
   --color-authbar-text: #ffffff;
+  --color-submenu-text: #A82975;
 }
 
 /* Theme overrides via data-theme on <body> */
@@ -74,6 +75,7 @@ body[data-theme='baby-autumn'] {
   --color-heading: #8E2908;
   --color-border: #8E2908;
   --color-question-bg: #ffede8;
+  --color-submenu-text: #DC744E;
 }
 
 body[data-theme='baby-autumn'] main {
@@ -144,6 +146,13 @@ body[data-theme='baby-autumn'] .btn-primary:active {
 /* Question card background driven by theme variable */
 .question-card {
   background-color: var(--color-question-bg);
+}
+
+/* Submenu text color driven by theme */
+.submenu,
+.submenu a,
+.submenu a:visited {
+  color: var(--color-submenu-text);
 }
 
 /* Option button base + theme-aware selected state */
