@@ -161,7 +161,7 @@ export default function AuthBar() {
         </div>
 
         {/* Navigation / menus */}
-          <div className="flex items-center space-x-4 desktop-nav">
+          <div className="flex items-center space-x-6 desktop-nav">
             <a href="/" className="text-md font-bold tracking-wider hover:underline">Home</a>
             {isAdmin ? (
               <a href="/admin" className="text-md font-bold tracking-wider hover:underline">Admin</a>

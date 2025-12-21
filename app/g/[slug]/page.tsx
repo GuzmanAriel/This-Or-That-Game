@@ -366,6 +366,7 @@ export default function GamePage({ params }: Props) {
   return (
     <div className="container mx-auto p-8 max-w-3xl">
       <h2 className="text-4xl font-bold font-heading">Play: {game.title}</h2>
+      <p className="mt-2 text-gray-600">Please enter your first and last name to start the game.</p>
       <p className="mt-2 text-gray-600">Invite people to: <code className="text-sm">/g/{game.slug}</code></p>
 
       {!game.is_open && (
@@ -382,11 +383,11 @@ export default function GamePage({ params }: Props) {
           <form onSubmit={handleJoin} className="mt-4 space-y-3">
             <div>
               <label className="block text-sm font-medium">First name</label>
-              <input name="first_name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+              <input name="first_name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
             </div>
             <div>
               <label className="block text-sm font-medium">Last name</label>
-              <input name="last_name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+              <input name="last_name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
             </div>
             <div>
               <button type="submit" className="btn-primary" disabled={playerLoading}>
@@ -507,7 +508,7 @@ export default function GamePage({ params }: Props) {
               )}
 
               {questions.length > 0 && (
-                <a href={`/g/${game.slug}/leaderboard`}>View Leaderboard</a>
+                <a href={`/g/${game.slug}/leaderboard`} className="btn-secondary">View Leaderboard</a>
               )}
             </div>
         </section>

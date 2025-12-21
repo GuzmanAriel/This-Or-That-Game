@@ -138,6 +138,35 @@ body[data-theme='baby-autumn'] .btn-primary:active {
   background-color: #a85233;
 }
 
+/* Secondary button used for actions like 'View Leaderboard' */
+.btn-secondary {
+  color: #ffffff !important; /* ensure white text (override leaderboard-item) */
+  background-color: #295875; /* default theme secondary */
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+.btn-secondary:hover {
+  background-color: #244f67;
+}
+.btn-secondary:active {
+  background-color: #1f3f54;
+}
+
+/* baby-autumn overrides */
+body[data-theme='baby-autumn'] .btn-secondary {
+  background-color: #DC744E;
+}
+body[data-theme='baby-autumn'] .btn-secondary:hover {
+  background-color: #c66541;
+}
+body[data-theme='baby-autumn'] .btn-secondary:active {
+  background-color: #a85233;
+}
+
 /* Make default border width 2px app-wide */
 .border {
   border-width: 2px;
@@ -167,8 +196,8 @@ body[data-theme='baby-autumn'] .btn-primary:active {
 .submenu {
   display: none;
 }
-.relative:hover .submenu,
-.relative:focus-within .submenu {
+.relative:hover > .submenu,
+.relative:focus-within > .submenu {
   display: block;
 }
 .option-button {
@@ -198,6 +227,12 @@ body {
 
 /* Headings should use the theme heading color */
 h1, h2, h3, h4, h5, h6, a {
+  color: var(--color-heading);
+}
+
+/* Leaderboard items should use the heading color for better contrast */
+.leaderboard-item,
+.leaderboard-item * {
   color: var(--color-heading);
 }
 

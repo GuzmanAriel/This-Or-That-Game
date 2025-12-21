@@ -21,6 +21,7 @@ export default function LeaderboardPage({ params }: Props) {
   const [gameOptionA, setGameOptionA] = useState<string | null>(null)
   const [gameOptionB, setGameOptionB] = useState<string | null>(null)
   const [gameTiebreakerAnswer, setGameTiebreakerAnswer] = useState<number | null>(null)
+  const [gameTitle, setGameTitle] = useState<string>('')
 
   useEffect(() => {
     let mounted = true
@@ -29,7 +30,7 @@ export default function LeaderboardPage({ params }: Props) {
       setError(null)
       try {
         // fetch game, players, questions, answers and current user
-        const { data: gData, error: gErr } = await supabase.from('games').select('id,created_by,option_a_label,option_b_label,tiebreaker_answer,theme').eq('slug', slug).limit(1).maybeSingle()
+        const { data: gData, error: gErr } = await supabase.from('games').select('id,title,created_by,option_a_label,option_b_label,tiebreaker_answer,theme').eq('slug', slug).limit(1).maybeSingle()
         if (gErr) throw gErr
         if (!gData) {
           setError('Game not found')
@@ -41,6 +42,7 @@ export default function LeaderboardPage({ params }: Props) {
         setGameOptionA((gData as any).option_a_label ?? null)
         setGameOptionB((gData as any).option_b_label ?? null)
         setGameTiebreakerAnswer((gData as any).tiebreaker_answer ?? null)
+        setGameTitle((gData as any).title ?? '')
         // apply theme for this page
         try { document.body.dataset.theme = (gData as any).theme ?? 'default' } catch (e) {}
 
@@ -123,18 +125,18 @@ export default function LeaderboardPage({ params }: Props) {
   if (error) return <div className="p-8 text-red-600">{error}</div>
 
   return (
-    <div className="container mx-auto p-8">
-      <h2 className="text-2xl font-semibold">Leaderboard: {slug}</h2>
+    <div className="container mx-auto p-8 max-w-3xl">
+      <h2 className="text-2xl font-semibold">Leaderboard: {gameTitle || slug}</h2>
       {scores.length === 0 ? (
         <p className="mt-4 text-sm text-gray-600">No submissions yet.</p>
       ) : (
         <ul className="mt-4 space-y-2">
           {scores.map(s => (
-            <li key={s.player_id} className="rounded border p-3 flex items-center justify-between">
-              <div>{s.first_name ?? 'Player'} {s.last_name ?? ''}</div>
-              <div className="font-medium">{s.score}</div>
+            <li key={s.player_id} className="rounded px-5 py-8 flex items-center justify-between question-card leaderboard-item">
+              <div className="font-bold">{s.first_name ?? 'Player'} {s.last_name ?? ''}</div>
+              <div className="font-bold">{s.score}</div>
               {isAdmin && (
-                <button className="ml-4 text-sm" onClick={() => setSelectedPlayer(s.player_id)}>View</button>
+                <button className="ml-4 text-sm text-white btn-secondary" onClick={() => setSelectedPlayer(s.player_id)}>View</button>
               )}
             </li>
           ))}

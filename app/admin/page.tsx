@@ -296,7 +296,7 @@ export default function AdminPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
               />
               <p className="mt-1 text-xs text-gray-500">Displayed on the public game page and leaderboards.</p>
             </div>
@@ -310,7 +310,7 @@ export default function AdminPage() {
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase())}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
               />
               <p className="mt-1 text-xs text-gray-500">Used in the URL <span className="font-mono">/g/[slug]</span>. Make it unique, lowercase, and URL-friendly (use hyphens).</p>
             </div>
@@ -334,7 +334,7 @@ export default function AdminPage() {
             <div>
               <label htmlFor="optionA" className="block text-sm font-medium text-gray-700">Option A label</label>
               <div className="flex items-center space-x-2">
-                <input id="optionA" value={optionALabel} onChange={(e) => setOptionALabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+                <input id="optionA" value={optionALabel} onChange={(e) => setOptionALabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
                 <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} />
               </div>
               <p className="mt-1 text-xs text-gray-500">Label shown as one of the two choices players pick (e.g. "Mom"). Optional emoji appears before the label.</p>
@@ -343,7 +343,7 @@ export default function AdminPage() {
             <div>
               <label htmlFor="optionB" className="block text-sm font-medium text-gray-700">Option B label</label>
               <div className="flex items-center space-x-2">
-                <input id="optionB" value={optionBLabel} onChange={(e) => setOptionBLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+                <input id="optionB" value={optionBLabel} onChange={(e) => setOptionBLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
                 <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} />
               </div>
               <p className="mt-1 text-xs text-gray-500">Label shown as the second choice players pick (e.g. "Dad"). Optional emoji appears before the label.</p>
@@ -355,7 +355,7 @@ export default function AdminPage() {
                   type="checkbox"
                   checked={isOpen}
                   onChange={(e) => setIsOpen(e.target.checked)}
-                  className="rounded"
+                  className="rounded p-2"
                 />
                 <span className="text-sm">Open</span>
               </label>
@@ -366,7 +366,7 @@ export default function AdminPage() {
                   type="checkbox"
                   checked={tiebreakerEnabled}
                   onChange={(e) => setTiebreakerEnabled(e.target.checked)}
-                  className="rounded"
+                  className="rounded p-2"
                 />
                 <span className="text-sm">Tiebreaker enabled</span>
               </label>
@@ -384,7 +384,7 @@ export default function AdminPage() {
                     type="text"
                     value={tiebreakerPrompt}
                     onChange={(e) => setTiebreakerPrompt(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
                   />
                   <p className="mt-1 text-xs text-gray-500">Short prompt shown to players (e.g. "How many candies are in the jar?").</p>
                 </div>
@@ -397,7 +397,7 @@ export default function AdminPage() {
                     type="number"
                     value={tiebreakerAnswer}
                     onChange={(e) => setTiebreakerAnswer(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm"
+                    className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm p-2"
                   />
                   <p className="mt-1 text-xs text-gray-500">The numeric correct answer used to rank tiebreaker guesses (required if tiebreaker enabled).</p>
                 </div>
