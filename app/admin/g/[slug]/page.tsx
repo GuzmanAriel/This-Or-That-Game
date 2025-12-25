@@ -385,8 +385,29 @@ export default function AdminGamePage() {
                     <div className="h-40 w-40 mx-auto bg-gray-100 flex items-center justify-center">QR</div>
                   )}
                   <div className="mt-2 text-sm break-all">{qrDataUrl ? undefined : `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/g/${game.slug}`}</div>
-                  <div className="mt-2">
+                  <div className="mt-2 flex items-center space-x-2">
                     <button onClick={() => window.print()} className="btn-primary">Print</button>
+                    {qrDataUrl ? (
+                      <button
+                        onClick={() => {
+                          try {
+                            const link = document.createElement('a')
+                            link.href = qrDataUrl
+                            link.download = `${game?.slug ?? 'qr'}-qr.png`
+                            document.body.appendChild(link)
+                            link.click()
+                            link.remove()
+                          } catch (e) {
+                            console.error('Download failed', e)
+                          }
+                        }}
+                        className="btn-primary"
+                      >
+                        Download
+                      </button>
+                    ) : (
+                      <button disabled className="btn-primary opacity-50 cursor-not-allowed">Download</button>
+                    )}
                   </div>
                 </div>
               </div>
