@@ -31,6 +31,12 @@ export default function AdminPage() {
   const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
   const [optionALabel, setOptionALabel] = useState('')
   const [optionBLabel, setOptionBLabel] = useState('')
+
+  useEffect(() => {
+    // auto-generate slug from title: lowercase, spaces -> hyphens, strip invalid chars
+    const s = title.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    setSlug(s)
+  }, [title])
   const [formError, setFormError] = useState<string | null>(null)
   const [success, setSuccess] = useState<{ slug: string } | null>(null)
   // list of games created by this admin
@@ -109,8 +115,8 @@ export default function AdminPage() {
     setFormError(null)
     setSuccess(null)
 
-    if (!title.trim() || !slug.trim()) {
-      setFormError('Title and slug are required')
+    if (!title.trim()) {
+      setFormError('Title is required')
       return
     }
 
@@ -308,17 +314,14 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
-                    Slug
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700">Slug (auto)</label>
                   <input
                     id="slug"
                     value={slug}
-                    onChange={(e) => setSlug(e.target.value.toLowerCase())}
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
+                    readOnly
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-100"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Used in the URL <span className="font-mono">/g/[slug]</span>. Make it unique, lowercase, and URL-friendly (use hyphens).</p>
+                  <p className="mt-1 text-xs text-gray-500">Automatically generated from the title; spaces become hyphens.</p>
                 </div>
 
                 <div>
