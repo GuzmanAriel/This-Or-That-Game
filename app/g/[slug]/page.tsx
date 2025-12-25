@@ -26,6 +26,8 @@ export default function GamePage({ params }: Props) {
   const { slug } = params
   const supabase = getSupabaseClient()
 
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '') || (typeof window !== 'undefined' ? window.location.origin : '')
+
   const [loading, setLoading] = useState(true)
   const [game, setGame] = useState<Game | null>(null)
   // Public questions must NOT include the correct answer field
@@ -380,7 +382,7 @@ export default function GamePage({ params }: Props) {
           )}
         </div>
       )}
-      <p className="mt-5 text-gray-600 text-2xl">Invite people to: <code className="text-2xl">/g/{game.slug}</code></p>
+      <p className="mt-5 text-gray-600 text-2xl"><b>Invite people to:</b> <br/><code className="text-2xl">{siteUrl}/g/{game.slug}</code></p>
 
       {!game.is_open && (
         <div className="mt-4 rounded-md bg-red-50 border border-red-200 p-3 text-red-700">
