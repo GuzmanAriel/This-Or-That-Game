@@ -43,6 +43,7 @@ export default function GamePage({ params }: Props) {
   const [tiebreakerState, setTiebreakerState] = useState<{ value: string; loading: boolean; error?: string; saved?: boolean }>({ value: '', loading: false })
   const [submittingAll, setSubmittingAll] = useState(false)
   const [showSubmittedModal, setShowSubmittedModal] = useState(false)
+  const [copiedUrl, setCopiedUrl] = useState(false)
 
   // check for existing player id in localStorage for this game
   useEffect(() => {
@@ -401,7 +402,39 @@ export default function GamePage({ params }: Props) {
           )}
         </div>
       )}
-      <p className="mt-5 text-gray-600 text-2xl"><b>Invite people to:</b> <br/><code className="text-2xl">{siteUrl}/g/{game.slug}</code></p>
+      <div className="mt-5 text-gray-600 text-2xl">
+        <b>Invite people to:</b>
+        <div className="mt-2 flex items-center space-x-3">
+          <code className="text-2xl break-all">{siteUrl}/g/{game.slug}</code>
+          <button
+            onClick={async () => {
+              const url = `${siteUrl}/g/${game.slug}`
+              try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  await navigator.clipboard.writeText(url)
+                } else {
+                  const ta = document.createElement('textarea')
+                  ta.value = url
+                  document.body.appendChild(ta)
+                  ta.select()
+                  document.execCommand('copy')
+                  ta.remove()
+                }
+                setCopiedUrl(true)
+                setTimeout(() => setCopiedUrl(false), 2000)
+              } catch (e) {
+                console.error('Copy failed', e)
+                alert('Copy failed')
+              }
+            }}
+            className="btn-primary"
+            aria-label="Copy game URL"
+          >
+            Copy
+          </button>
+          {copiedUrl && <span className="text-sm text-green-600">Copied!</span>}
+        </div>
+      </div>
 
       {!game.is_open && (
         <div className="mt-4 rounded-md bg-red-50 border border-red-200 p-3 text-red-700">

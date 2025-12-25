@@ -19,6 +19,7 @@ export default function AdminGamePage() {
   const [checkingUser, setCheckingUser] = useState(true)
   const [user, setUser] = useState<any | null>(null)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
+  const [copiedUrl, setCopiedUrl] = useState(false)
 
   // option labels for the game (editable by admin)
   const [optionA, setOptionA] = useState('')
@@ -318,6 +319,28 @@ export default function AdminGamePage() {
     }
   }
 
+  async function handleCopyUrl() {
+    if (!game) return
+    try {
+      const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
+      const target = siteUrl ? `${siteUrl}/g/${game.slug}` : `${window.location.origin}/g/${game.slug}`
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(target)
+      } else {
+        const ta = document.createElement('textarea')
+        ta.value = target
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        ta.remove()
+      }
+      setCopiedUrl(true)
+      setTimeout(() => setCopiedUrl(false), 2000)
+    } catch (e) {
+      console.error('Copy failed', e)
+    }
+  }
+
   return (
     <div className="container mx-auto px-8 pt-16 pb-8">
       <div className="mt-6 flex flex-col md:flex-row md:items-start md:space-x-12">
@@ -406,8 +429,9 @@ export default function AdminGamePage() {
                     <div className="h-40 w-40 mx-auto bg-gray-100 flex items-center justify-center">QR</div>
                   )}
                   <div className="mt-2 text-sm break-all">{qrDataUrl ? undefined : `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/g/${game.slug}`}</div>
-                  <div className="mt-2 flex items-center space-x-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
                     <button onClick={() => window.print()} className="btn-primary">Print</button>
+                    <button onClick={handleCopyUrl} className="btn-primary">Copy URL</button>
                     {qrDataUrl ? (
                       <button
                         onClick={() => {
@@ -429,6 +453,7 @@ export default function AdminGamePage() {
                     ) : (
                       <button disabled className="btn-primary opacity-50 cursor-not-allowed">Download</button>
                     )}
+                    {copiedUrl && <span className="ml-2 text-sm text-green-600">Copied!</span>}
                   </div>
                 </div>
               </div>
