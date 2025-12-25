@@ -30,6 +30,8 @@ export default function AdminGamePage() {
   const [tiebreakerAnswerLocal, setTiebreakerAnswerLocal] = useState<number | ''>('')
   const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
   const [editingLabels, setEditingLabels] = useState(false)
+  const [tiebreakerEditing, setTiebreakerEditing] = useState(false)
+
   const [togglingOpen, setTogglingOpen] = useState(false)
 
 
@@ -241,9 +243,7 @@ export default function AdminGamePage() {
         option_b_label: optionB || null,
         option_a_emoji: optionAEmoji ?? null,
         option_b_emoji: optionBEmoji ?? null,
-        tiebreaker_enabled: Boolean(tiebreakerEnabledLocal),
-        tiebreaker_prompt: tiebreakerPrompt || null,
-        tiebreaker_answer: tiebreakerEnabledLocal ? (tiebreakerAnswerLocal === '' ? null : Number(tiebreakerAnswerLocal)) : null
+        // tiebreaker fields managed separately in Questions list
       }
 
       const { data, error } = await supabase
@@ -259,6 +259,40 @@ export default function AdminGamePage() {
       setEditingLabels(false)
     } catch (err: any) {
       setError(err?.message ?? 'Failed to save labels')
+    } finally {
+      setSavingLabels(false)
+    }
+  }
+
+  async function handleSaveTiebreaker() {
+    if (!game) return
+    setSavingLabels(true)
+    try {
+      if (tiebreakerEnabledLocal) {
+        const raw = tiebreakerAnswerLocal
+        if (raw === '' || !Number.isFinite(Number(raw))) {
+          setError('Tiebreaker answer must be a number')
+          setSavingLabels(false)
+          return
+        }
+      }
+      const updatePayload: any = {
+        tiebreaker_enabled: Boolean(tiebreakerEnabledLocal),
+        tiebreaker_prompt: tiebreakerPrompt || null,
+        tiebreaker_answer: tiebreakerEnabledLocal ? (tiebreakerAnswerLocal === '' ? null : Number(tiebreakerAnswerLocal)) : null
+      }
+      const { data, error } = await supabase
+        .from('games')
+        .update(updatePayload)
+        .eq('id', game.id)
+        .select()
+        .limit(1)
+        .maybeSingle()
+      if (error) throw error
+      if (data) setGame(data as Game)
+      setTiebreakerEditing(false)
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to save tiebreaker')
     } finally {
       setSavingLabels(false)
     }
@@ -337,24 +371,7 @@ export default function AdminGamePage() {
                           <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} />
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <label className="flex items-center space-x-2">
-                          <input type="checkbox" checked={tiebreakerEnabledLocal} onChange={(e) => setTiebreakerEnabledLocal(e.target.checked)} />
-                          <span className="text-md font-semibold">Tiebreaker enabled</span>
-                        </label>
-                      </div>
-                      {tiebreakerEnabledLocal && (
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-md font-semibold">Tiebreaker question</label>
-                            <input value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                          </div>
-                          <div>
-                            <label className="block text-md font-semibold">Tiebreaker answer (number)</label>
-                            <input type="number" value={tiebreakerAnswerLocal} onChange={(e) => setTiebreakerAnswerLocal(e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                          </div>
-                        </div>
-                      )}
+                      {/* Tiebreaker is edited inline under Questions */}
                       <div className="flex items-center space-x-2">
                         <button type="submit" disabled={savingLabels} className="btn-primary">
                           {savingLabels ? 'Saving…' : 'Save'}
@@ -416,7 +433,6 @@ export default function AdminGamePage() {
                 </div>
               </div>
             </div>
-            {/* tiebreaker moved into Questions list for consistency */}
           </div>
         </div>
 
@@ -488,20 +504,53 @@ export default function AdminGamePage() {
                 </li>
               )
             })}
-            {game.tiebreaker_enabled && game.tiebreaker_prompt && (
+            {game.tiebreaker_enabled !== undefined && (
               <li key="tiebreaker" className="rounded border p-3 question-card">
-                <div className="flex items-start justify-between">
+                {!tiebreakerEditing ? (
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-lg font-bold">Tiebreaker</h4>
+                      <div className="mt-1 font-medium text-lg">{game.tiebreaker_prompt || 'No prompt set'}</div>
+                      {typeof (game as any).tiebreaker_answer !== 'undefined' && (game as any).tiebreaker_answer !== null && (
+                        <div className="mt-1 text-sm text-gray-600">Answer (admin): {(game as any).tiebreaker_answer}</div>
+                      )}
+                    </div>
+                    <div className="ml-4 text-right">
+                      <div className="space-x-2">
+                        <button className="btn-primary" onClick={() => setTiebreakerEditing(true)}>Edit</button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
                   <div>
-                    <h4 className="text-lg font-bold">Tiebreaker</h4>
-                    <div className="mt-1 font-medium text-lg">{game.tiebreaker_prompt}</div>
-                    {typeof (game as any).tiebreaker_answer !== 'undefined' && (game as any).tiebreaker_answer !== null && (
-                      <div className="mt-1 text-sm text-gray-600">Answer (admin): {(game as any).tiebreaker_answer}</div>
-                    )}
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <label className="flex items-center space-x-2">
+                          <input type="checkbox" checked={tiebreakerEnabledLocal} onChange={(e) => setTiebreakerEnabledLocal(e.target.checked)} />
+                          <span className="text-md font-semibold">Tiebreaker enabled</span>
+                        </label>
+                      </div>
+                      <div>
+                        <label className="block text-md font-semibold">Tiebreaker question</label>
+                        <input value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                      </div>
+                      <div>
+                        <label className="block text-md font-semibold">Tiebreaker answer (number)</label>
+                        <input type="number" value={tiebreakerAnswerLocal as any} onChange={(e) => setTiebreakerAnswerLocal(e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                      </div>
+                      <div className="mt-2 space-x-2">
+                        <button className="px-3 py-1 btn-primary" onClick={async () => { await handleSaveTiebreaker() }}>Save</button>
+                        <button className="px-3 py-1 inline-flex items-center rounded border" onClick={() => {
+                          // cancel edits: restore from `game`
+                          setTiebreakerEnabledLocal(Boolean((game as any)?.tiebreaker_enabled))
+                          setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
+                          setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
+                          setTiebreakerEditing(false)
+                        }}>Cancel</button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="ml-4 text-right">
-                    <div className="text-sm text-gray-500">Admin only</div>
-                  </div>
-                </div>
+                )}
               </li>
             )}
           </ul>

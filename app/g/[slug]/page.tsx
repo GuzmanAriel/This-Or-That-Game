@@ -495,7 +495,7 @@ export default function GamePage({ params }: Props) {
                     type="number"
                     value={tiebreakerState.value}
                     onChange={(e) => setTiebreakerState(prev => ({ ...prev, value: e.target.value, saved: false }))}
-                    className="block w-48 rounded-md border-gray-300 shadow-sm"
+                    className="block w-48 rounded-md border-gray-300 shadow-sm p-2"
                     disabled={tiebreakerState.saved || !game.is_open}
                     placeholder="Your guess"
                   />
@@ -515,7 +515,7 @@ export default function GamePage({ params }: Props) {
                     (game.is_open ? (
                       <button
                         onClick={() => handleTiebreakerSubmit()}
-                        className="px-3 py-1 bg-indigo-600 text-white rounded-md"
+                        className="btn-primary"
                         disabled={tiebreakerState.loading}
                       >
                         {tiebreakerState.loading ? 'Saving…' : 'Submit'}
