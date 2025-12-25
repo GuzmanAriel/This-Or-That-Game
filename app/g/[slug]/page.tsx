@@ -42,6 +42,7 @@ export default function GamePage({ params }: Props) {
   // tiebreaker answer state (numeric/string guessed value)
   const [tiebreakerState, setTiebreakerState] = useState<{ value: string; loading: boolean; error?: string; saved?: boolean }>({ value: '', loading: false })
   const [submittingAll, setSubmittingAll] = useState(false)
+  const [showSubmittedModal, setShowSubmittedModal] = useState(false)
 
   // check for existing player id in localStorage for this game
   useEffect(() => {
@@ -349,6 +350,12 @@ export default function GamePage({ params }: Props) {
       const { error } = await supabase.from('answers').insert(payloads)
       if (error) throw error
 
+      // show a brief success modal
+      try {
+        setShowSubmittedModal(true)
+        setTimeout(() => setShowSubmittedModal(false), 5000)
+      } catch (e) {}
+
       // mark saved
       const newAnswersState = { ...answersState }
       for (const q of questions) {
@@ -367,6 +374,18 @@ export default function GamePage({ params }: Props) {
   // UI
   return (
     <div className="container mx-auto p-8 max-w-3xl">
+      {showSubmittedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-40" onClick={() => setShowSubmittedModal(false)} />
+          <div role="dialog" aria-modal="true" className="relative bg-white rounded-lg p-6 shadow-lg w-80 text-center text-green-700">
+            <div className="text-2xl font-bold">Answers Submitted</div>
+            <div className="mt-2 text-sm">Thanks — your answers were submitted successfully.</div>
+            <div className="mt-4">
+              <button onClick={() => setShowSubmittedModal(false)} className="px-3 py-1 bg-green-600 text-white rounded-md">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
       <h2 className="text-5xl font-bold font-heading">Play: {game.title}</h2>
       {!playerId ? (
         <p className="mt-2 text-gray-600">Please enter your first and last name to start the game.</p>
