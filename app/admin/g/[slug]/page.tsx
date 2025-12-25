@@ -71,6 +71,10 @@ export default function AdminGamePage() {
       }
 
       setGame(gData)
+      try {
+        const t = (gData as any).theme ?? 'default'
+        document.body.dataset.theme = t
+      } catch (e) {}
 
       // initialize label inputs and tiebreaker fields from game
       setOptionA((gData as any).option_a_label ?? '')
@@ -101,7 +105,7 @@ export default function AdminGamePage() {
     }
 
     load()
-    return () => { mounted = false }
+    return () => { mounted = false; try { document.body.dataset.theme = 'default' } catch (e) {} }
   }, [slug, supabase])
 
   useEffect(() => {
