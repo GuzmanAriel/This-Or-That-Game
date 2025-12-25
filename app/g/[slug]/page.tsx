@@ -487,10 +487,10 @@ export default function GamePage({ params }: Props) {
               )
             })}
             {game.tiebreaker_enabled && game.tiebreaker_prompt && (
-              <li key="tiebreaker" className="rounded border p-3">
-                <div className="text-sm font-medium">Tiebreaker</div>
-                <div className="mt-1 text-sm">{game.tiebreaker_prompt}</div>
-                  <div className="mt-3 flex items-center space-x-2">
+              <li key="tiebreaker" className="rounded px-5 py-8 question-card">
+                <h4 className="text-lg font-bold">Tiebreaker</h4>
+                <div className="mt-1 font-medium text-lg">{game.tiebreaker_prompt}</div>
+                <div className="mt-3 flex items-center space-x-2">
                   <input
                     type="number"
                     value={tiebreakerState.value}

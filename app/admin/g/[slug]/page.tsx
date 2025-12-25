@@ -416,12 +416,7 @@ export default function AdminGamePage() {
                 </div>
               </div>
             </div>
-            {game.tiebreaker_enabled && game.tiebreaker_prompt && (
-              <div className="mt-2 text-sm text-gray-700">
-                <div className="font-medium">Tiebreaker</div>
-                <div className="mt-1">{game.tiebreaker_prompt}</div>
-              </div>
-            )}
+            {/* tiebreaker moved into Questions list for consistency */}
           </div>
         </div>
 
@@ -493,6 +488,22 @@ export default function AdminGamePage() {
                 </li>
               )
             })}
+            {game.tiebreaker_enabled && game.tiebreaker_prompt && (
+              <li key="tiebreaker" className="rounded border p-3 question-card">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-lg font-bold">Tiebreaker</h4>
+                    <div className="mt-1 font-medium text-lg">{game.tiebreaker_prompt}</div>
+                    {typeof (game as any).tiebreaker_answer !== 'undefined' && (game as any).tiebreaker_answer !== null && (
+                      <div className="mt-1 text-sm text-gray-600">Answer (admin): {(game as any).tiebreaker_answer}</div>
+                    )}
+                  </div>
+                  <div className="ml-4 text-right">
+                    <div className="text-sm text-gray-500">Admin only</div>
+                  </div>
+                </div>
+              </li>
+            )}
           </ul>
 
           <form onSubmit={handleAddQuestion} className="mt-6 space-y-3">
