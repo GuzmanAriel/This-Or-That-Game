@@ -281,216 +281,233 @@ export default function AdminGamePage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Manage Game</h1>
-        <div className="mt-3 rounded border p-4">
-          <div className="text-lg font-semibold">{game.title}</div>
-          <div className="text-sm text-gray-600">Slug: {game.slug}</div>
-          <div className="text-sm">Status: {game.is_open ? 'Open' : 'Closed'}</div>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <div>
-              <div className="text-sm font-medium">Public play link</div>
-              <div className="mt-1"><a href={`/g/${game.slug}`}>{`/g/${game.slug}`}</a></div>
-              <div className="mt-2 text-sm font-medium">Leaderboard</div>
-              <div className="mt-1"><a href={`/g/${game.slug}/leaderboard`}>{`/g/${game.slug}/leaderboard`}</a></div>
-            </div>
-            <div className="text-center">
-              {/* QR code suitable for printing; SITE URL is read from NEXT_PUBLIC_SITE_URL. Uses local qrcode to create a data URI. */}
-              <div className="p-4 border rounded">
-                {qrDataUrl ? (
-                  <img src={qrDataUrl} alt="QR code" className="mx-auto" />
-                ) : (
-                  <div className="h-40 w-40 mx-auto bg-gray-100 flex items-center justify-center">QR</div>
-                )}
-                <div className="mt-2 text-sm break-all">{qrDataUrl ? undefined : `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/g/${game.slug}`}</div>
-                <div className="mt-2">
-                  <button onClick={() => window.print()} className="px-3 py-1 bg-gray-100 rounded border">Print</button>
+    <div className="container mx-auto px-8 pt-16 pb-8">
+      <div className="mt-6 flex flex-col md:flex-row md:items-start md:space-x-12">
+        <div className="mb-6 md:w-1/2">
+          <h1 className="text-3xl font-bold">Manage Game</h1>
+          <div className="mt-3 rounded border p-4">
+            <div className="mt-4">
+              <div>
+                <div className="text-2xl font-semibold mb-2">{game.title}</div>
+                <div className={`text-lg font-semibold mb-2 ${game.is_open ? 'text-green-600' : 'text-red-600'}`}>Status: {game.is_open ? 'Open' : 'Closed'}</div>
+                <div className="text-md font-semibold">Public play link:</div>
+                <div className="mb-3"><a href={`/g/${game.slug}`}>{`/g/${game.slug}`}</a></div>
+                <div className="mt-2 text-md font-semibold">Leaderboard</div>
+                <div className="mt-1 text-md"><a href={`/g/${game.slug}/leaderboard`}>{`/g/${game.slug}/leaderboard`}</a></div>
+              
+                <div className="mt-4">
+                  {!editingLabels ? (
+                    <div className="space-y-2">
+                      <div>
+                        <div className="text-md font-semibold">Option A label</div>
+                        <div className="mt-1 text-gray-900">{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</div>
+                      </div>
+                      <div>
+                        <div className="text-md font-semibold">Option B label</div>
+                        <div className="mt-1 text-gray-900">{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</div>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <button className="text-lg text-indigo-600 hover:underline" onClick={() => setEditingLabels(true)}>Edit labels</button>
+                        <button
+                          className="text-lg text-red-600"
+                          onClick={handleToggleOpen}
+                          disabled={togglingOpen}
+                        >
+                          {togglingOpen ? (game.is_open ? 'Closing…' : 'Re-opening…') : (game.is_open ? 'Close submissions' : 'Re-open submissions')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSaveLabels} className="space-y-2">
+                      <div>
+                        <label className="block text-md font-semibold">Option A label</label>
+                        <div className="flex items-center space-x-2">
+                          <input value={optionA} onChange={(e) => setOptionA(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                          <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-md font-semibold">Option B label</label>
+                        <div className="flex items-center space-x-2">
+                          <input value={optionB} onChange={(e) => setOptionB(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                          <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} />
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center space-x-2">
+                          <input type="checkbox" checked={tiebreakerEnabledLocal} onChange={(e) => setTiebreakerEnabledLocal(e.target.checked)} />
+                          <span className="text-md font-semibold">Tiebreaker enabled</span>
+                        </label>
+                      </div>
+                      {tiebreakerEnabledLocal && (
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-md font-semibold">Tiebreaker question</label>
+                            <input value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                          </div>
+                          <div>
+                            <label className="block text-md font-semibold">Tiebreaker answer (number)</label>
+                            <input type="number" value={tiebreakerAnswerLocal} onChange={(e) => setTiebreakerAnswerLocal(e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-2">
+                        <button type="submit" disabled={savingLabels} className="btn-primary">
+                          {savingLabels ? 'Saving…' : 'Save'}
+                        </button>
+                        <button type="button" className="inline-flex items-center px-3 py-1 rounded border" onClick={() => {
+                          // cancel edits: reset fields from `game` and exit edit mode
+                          setOptionA((game as any)?.option_a_label ?? '')
+                          setOptionB((game as any)?.option_b_label ?? '')
+                            setOptionAEmoji((game as any)?.option_a_emoji ?? null)
+                            setOptionBEmoji((game as any)?.option_b_emoji ?? null)
+                          setTiebreakerEnabledLocal(Boolean((game as any)?.tiebreaker_enabled))
+                          setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
+                          setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
+                          setEditingLabels(false)
+                        }}>Cancel</button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+                <div className="mt-5 space-x-3">
+                  <a className="btn-primary" href={`/g/${game.slug}`}>Player link</a>
+                  <a className="btn-primary" href={`/g/${game.slug}/leaderboard`}>Leaderboard</a>
+                </div>
+              </div>
+
+              <div className="text-center mt-6">
+                {/* QR code suitable for printing; SITE URL is read from NEXT_PUBLIC_SITE_URL. Uses local qrcode to create a data URI. */}
+                <div>
+                  {qrDataUrl ? (
+                    <img src={qrDataUrl} alt="QR code" className="mx-auto" />
+                  ) : (
+                    <div className="h-40 w-40 mx-auto bg-gray-100 flex items-center justify-center">QR</div>
+                  )}
+                  <div className="mt-2 text-sm break-all">{qrDataUrl ? undefined : `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/g/${game.slug}`}</div>
+                  <div className="mt-2">
+                    <button onClick={() => window.print()} className="btn-primary">Print</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          {game.tiebreaker_enabled && game.tiebreaker_prompt && (
-            <div className="mt-2 text-sm text-gray-700">
-              <div className="font-medium">Tiebreaker</div>
-              <div className="mt-1">{game.tiebreaker_prompt}</div>
-            </div>
-          )}
-          <div className="mt-3">
-            {!editingLabels ? (
-              <div className="space-y-2">
-                <div>
-                  <div className="text-sm font-medium text-gray-700">Option A label</div>
-                  <div className="mt-1 text-gray-900">{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-700">Option B label</div>
-                  <div className="mt-1 text-gray-900">{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button className="text-sm" onClick={() => setEditingLabels(true)}>Edit labels</button>
-                  <button
-                    className="text-sm text-red-600"
-                    onClick={handleToggleOpen}
-                    disabled={togglingOpen}
-                  >
-                    {togglingOpen ? (game.is_open ? 'Closing…' : 'Re-opening…') : (game.is_open ? 'Close submissions' : 'Re-open submissions')}
-                  </button>
-                </div>
+            {game.tiebreaker_enabled && game.tiebreaker_prompt && (
+              <div className="mt-2 text-sm text-gray-700">
+                <div className="font-medium">Tiebreaker</div>
+                <div className="mt-1">{game.tiebreaker_prompt}</div>
               </div>
-            ) : (
-              <form onSubmit={handleSaveLabels} className="space-y-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Option A label</label>
-                  <div className="flex items-center space-x-2">
-                    <input value={optionA} onChange={(e) => setOptionA(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                    <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Option B label</label>
-                  <div className="flex items-center space-x-2">
-                    <input value={optionB} onChange={(e) => setOptionB(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                    <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} />
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" checked={tiebreakerEnabledLocal} onChange={(e) => setTiebreakerEnabledLocal(e.target.checked)} />
-                    <span className="text-sm">Tiebreaker enabled</span>
-                  </label>
-                </div>
-                {tiebreakerEnabledLocal && (
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Tiebreaker question</label>
-                      <input value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Tiebreaker answer (number)</label>
-                      <input type="number" value={tiebreakerAnswerLocal} onChange={(e) => setTiebreakerAnswerLocal(e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 block w-40 rounded-md border-gray-300 shadow-sm" />
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center space-x-2">
-                  <button type="submit" disabled={savingLabels} className="btn-primary">
-                    {savingLabels ? 'Saving…' : 'Save'}
-                  </button>
-                  <button type="button" className="inline-flex items-center px-3 py-1 rounded border" onClick={() => {
-                    // cancel edits: reset fields from `game` and exit edit mode
-                    setOptionA((game as any)?.option_a_label ?? '')
-                    setOptionB((game as any)?.option_b_label ?? '')
-                      setOptionAEmoji((game as any)?.option_a_emoji ?? null)
-                      setOptionBEmoji((game as any)?.option_b_emoji ?? null)
-                    setTiebreakerEnabledLocal(Boolean((game as any)?.tiebreaker_enabled))
-                    setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
-                    setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
-                    setEditingLabels(false)
-                  }}>Cancel</button>
-                </div>
-              </form>
             )}
           </div>
-          <div className="mt-2 space-x-3">
-            <a href={`/g/${game.slug}`}>Player link</a>
-            <a href={`/g/${game.slug}/leaderboard`}>Leaderboard</a>
-          </div>
         </div>
-      </div>
 
-      <section>
-        <h2 className="text-xl font-semibold mb-3">Questions</h2>
+        <section className="md:w-1/2">
+          <h2 className="text-3xl font-bold mb-3">Questions</h2>
 
-        <ul className="space-y-2">
-          {questions.length === 0 && <li className="text-sm text-gray-600">No questions yet</li>}
-          {questions.map((q) => {
-            const e = editing[q.id]
-            return (
-              <li key={q.id} className="rounded border p-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="text-sm text-gray-500">#{q.order_index}</div>
-                    {!e ? (
-                      <div className="mt-1">{q.prompt}</div>
-                    ) : (
-                      <div className="mt-1">
-                        <input value={e.prompt} onChange={(ev) => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], prompt: ev.target.value } }))} className="block w-full rounded-md border-gray-300 shadow-sm" />
-                      </div>
-                    )}
-                    {/* Show friendly label for the stored correct answer (maps 'mom'/'dad' to option labels) */}
-                    {!e ? (
-                      <div className="mt-1 text-sm text-gray-700">Answer: {q.correct_answer === 'mom' ? (optionAEmoji ? optionAEmoji + ' ' : '') + (optionA || 'Option A') : (q.correct_answer === 'dad' ? (optionBEmoji ? optionBEmoji + ' ' : '') + (optionB || 'Option B') : q.correct_answer)}</div>
-                    ) : (
-                      <div className="mt-2 flex items-center space-x-4">
-                        <label className="flex items-center space-x-2">
-                          <input type="radio" name={`edit-correct-${q.id}`} checked={e.correct === 'mom'} onChange={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'mom' } }))} />
-                            <span className="text-sm">{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</span>
-                        </label>
-                        <label className="flex items-center space-x-2">
-                          <input type="radio" name={`edit-correct-${q.id}`} checked={e.correct === 'dad'} onChange={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'dad' } }))} />
-                            <span className="text-sm">{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</span>
-                        </label>
-                      </div>
-                    )}
+          <ul className="space-y-2">
+            {questions.length === 0 && <li className="text-sm text-gray-600">No questions yet</li>}
+            {questions.map((q) => {
+              const e = editing[q.id]
+              return (
+                <li key={q.id} className="rounded border p-3 question-card">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-lg font-bold">Question {q.order_index}</h4>
+                      {!e ? (
+                        <div className="mt-1 font-medium text-lg">{q.prompt}</div>
+                      ) : (
+                        <div className="mt-1">
+                          <input value={e.prompt} onChange={(ev) => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], prompt: ev.target.value } }))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                        </div>
+                      )}
+                      {/* Show friendly label for the stored correct answer (maps 'mom'/'dad' to option labels) */}
+                      {!e ? (
+                        <div className="mt-1 font-medium text-lg">Answer: {q.correct_answer === 'mom' ? (optionAEmoji ? optionAEmoji + ' ' : '') + (optionA || 'Option A') : (q.correct_answer === 'dad' ? (optionBEmoji ? optionBEmoji + ' ' : '') + (optionB || 'Option B') : q.correct_answer)}</div>
+                      ) : (
+                        <div className="mt-2 flex items-center space-x-4">
+                          <button
+                            type="button"
+                            onClick={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'mom' } }))}
+                            className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${e.correct === 'mom' ? 'selected' : ''}`}
+                          >
+                            <span>{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'dad' } }))}
+                            className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${e.correct === 'dad' ? 'selected' : ''}`}
+                          >
+                            <span>{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-4 text-right">
+                      {!e ? (
+                        <button className="text-sm btn-primary hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'mom' ? 'mom' : 'dad', saving: false } }))}>Edit</button>
+                      ) : (
+                        <div className="space-x-2">
+                          <button className="text-sm text-green-600" onClick={async () => {
+                            // save edit
+                            setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: true } }))
+                            try {
+                              const { error } = await supabase.from('questions').update({ prompt: e.prompt.trim(), correct_answer: e.correct }).eq('id', q.id)
+                              if (error) throw error
+                              const qResp = await supabase.from('questions').select('*').eq('game_id', game!.id).order('order_index', { ascending: true })
+                              setQuestions(qResp.data ?? [])
+                              setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })
+                            } catch (err: any) {
+                              setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: false, error: err?.message ?? 'Save failed' } }))
+                            }
+                          }}>Save</button>
+                          <button className="text-sm text-red-600" onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="ml-4 text-right">
-                    {!e ? (
-                      <button className="text-sm btn-primary hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'mom' ? 'mom' : 'dad', saving: false } }))}>Edit</button>
-                    ) : (
-                      <div className="space-x-2">
-                        <button className="text-sm text-green-600" onClick={async () => {
-                          // save edit
-                          setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: true } }))
-                          try {
-                            const { error } = await supabase.from('questions').update({ prompt: e.prompt.trim(), correct_answer: e.correct }).eq('id', q.id)
-                            if (error) throw error
-                            const qResp = await supabase.from('questions').select('*').eq('game_id', game!.id).order('order_index', { ascending: true })
-                            setQuestions(qResp.data ?? [])
-                            setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })
-                          } catch (err: any) {
-                            setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: false, error: err?.message ?? 'Save failed' } }))
-                          }
-                        }}>Save</button>
-                        <button className="text-sm text-red-600" onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {e?.error && <div className="mt-2 text-sm text-red-600">{e.error}</div>}
-              </li>
-            )
-          })}
-        </ul>
+                  {e?.error && <div className="mt-2 text-sm text-red-600">{e.error}</div>}
+                </li>
+              )
+            })}
+          </ul>
 
-        <form onSubmit={handleAddQuestion} className="mt-6 space-y-3">
-          <div>
-            <label htmlFor="prompt" className="block text-sm font-medium text-gray-700">Prompt</label>
-            <input id="prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-          </div>
-
-          <div>
-            <div className="text-sm font-medium text-gray-700">Correct answer</div>
-            <div className="mt-1 flex items-center space-x-4">
-              <label className="flex items-center space-x-2">
-                <input type="radio" name="correct" checked={correct === 'mom'} onChange={() => setCorrect('mom')} />
-                <span className="text-sm">{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input type="radio" name="correct" checked={correct === 'dad'} onChange={() => setCorrect('dad')} />
-                <span className="text-sm">{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</span>
-              </label>
+          <form onSubmit={handleAddQuestion} className="mt-6 space-y-3">
+            <div>
+              <label htmlFor="prompt" className="block text-sm font-medium text-gray-700">Prompt</label>
+              <input id="prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
             </div>
-          </div>
 
-          {formError && <div className="text-sm text-red-600">{formError}</div>}
+            <div>
+              <div className="text-sm font-medium text-gray-700">Correct answer</div>
+              <div className="mt-1 flex items-center space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setCorrect('mom')}
+                  className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${correct === 'mom' ? 'selected' : ''}`}
+                >
+                  <span>{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCorrect('dad')}
+                  className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${correct === 'dad' ? 'selected' : ''}`}
+                >
+                  <span>{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</span>
+                </button>
+              </div>
+            </div>
 
-          <div>
-            <button type="submit" disabled={submitting} className="btn-primary mt-4">
-              {submitting ? 'Adding…' : 'Add question'}
-            </button>
-          </div>
-        </form>
-      </section>
+            {formError && <div className="text-sm text-red-600">{formError}</div>}
+
+            <div>
+              <button type="submit" disabled={submitting} className="btn-primary mt-4">
+                {submitting ? 'Adding…' : 'Add question'}
+              </button>
+            </div>
+          </form>
+        </section>
+
+      </div>
+      
     </div>
   )
 }

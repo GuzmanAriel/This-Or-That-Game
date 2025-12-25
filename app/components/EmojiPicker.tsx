@@ -14,7 +14,7 @@ export default function EmojiPicker({ value, onChange }: Props) {
 
   return (
     <div className="relative inline-block">
-      <button type="button" onClick={() => setOpen(s => !s)} className="px-2 py-1 border rounded text-sm">
+      <button type="button" onClick={() => setOpen(s => !s)} className="px-2 py-1 border rounded text-lg">
         {value ?? '🙂'}
       </button>
       {open && (

@@ -277,7 +277,10 @@ export default function AdminPage() {
             </div>
         
           <div className="mt-6 flex flex-col md:flex-row md:items-start md:space-x-12">
+            
             <div className="md:w-1/2 order-last md:order-first space-y-6">
+
+              <h3 className="text-2xl font-bold font-heading mt-5 mb-3 md:mt-0">Create A Game</h3>
 
               <form onSubmit={handleCreateGame} className="space-y-4">
                 <div className="rounded-md border p-3 bg-gray-50 text-sm text-gray-700">
