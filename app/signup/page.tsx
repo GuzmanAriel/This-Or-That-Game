@@ -2,7 +2,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { getSupabaseClient } from '../../lib/supabase'
+import { getSupabaseClient } from '../../lib/supabaseClient'
 
 export default function SignUpPage() {
   const supabase = getSupabaseClient()

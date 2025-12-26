@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { getSupabaseClient } from '../lib/supabase'
+import { getSupabaseClient } from '../lib/supabaseClient'
 
 // Client component homepage — mirrors `AuthBar` client-side auth logic
 export default function HomePage() {

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { getSupabaseClient } from '../lib/supabase'
+import { getSupabaseClient } from '../lib/supabaseClient'
 
 export default function RootClient({ children }: { children: React.ReactNode }) {
   const [themeLoaded, setThemeLoaded] = useState(false)

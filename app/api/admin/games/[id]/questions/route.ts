@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseServiceClient } from '../../../../../../lib/supabase'
+import { getSupabaseServiceClient } from '../../../../../../lib/supabaseService'
 
 type ReqBody = {
   prompt?: string
@@ -7,7 +7,14 @@ type ReqBody = {
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const supabase = getSupabaseServiceClient()
+  let supabase
+  try {
+    supabase = getSupabaseServiceClient()
+  } catch (err: any) {
+    console.error('Supabase service client error', err)
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+  }
+
   const gameId = params.id
   if (!gameId) return NextResponse.json({ error: 'Missing game id' }, { status: 400 })
 
@@ -17,7 +24,13 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const supabase = getSupabaseServiceClient()
+  let supabase
+  try {
+    supabase = getSupabaseServiceClient()
+  } catch (err: any) {
+    console.error('Supabase service client error', err)
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+  }
   const gameId = params.id
   if (!gameId) return NextResponse.json({ error: 'Missing game id' }, { status: 400 })
 

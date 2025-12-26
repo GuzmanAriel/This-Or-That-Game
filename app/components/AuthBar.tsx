@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { getSupabaseClient } from '../../lib/supabase'
+import { getSupabaseClient } from '../../lib/supabaseClient'
 import MobileMenu from './MobileMenu'
 
 export default function AuthBar() {

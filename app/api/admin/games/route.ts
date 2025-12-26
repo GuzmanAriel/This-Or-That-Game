@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseServiceClient } from '../../../../lib/supabase'
+import { getSupabaseServiceClient } from '../../../../lib/supabaseService'
 import type { Game } from '../../../../lib/types'
 
 export async function GET() {
@@ -8,31 +8,38 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const supabase = getSupabaseServiceClient()
-
-  // Authenticate: expect Authorization: Bearer <token>
-  const authHeader = request.headers.get('authorization') || ''
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader
-
-  if (!token) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-  }
-
-  // Use supabase.auth.getUser() to validate token
-  const { data: userData, error: userError } = await supabase.auth.getUser(token as any)
-  if (userError || !userData?.user) {
-    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
-  }
-
-  // Parse and validate body
-  let body: any
   try {
-    body = await request.json()
-  } catch (e) {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+    let supabase
+    try {
+      supabase = getSupabaseServiceClient()
+    } catch (err: any) {
+      console.error('Supabase service client error', err)
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
 
-  const { title, slug, tiebreaker_enabled, tiebreaker_answer, is_open, option_a_label, option_b_label, option_a_emoji, option_b_emoji, tiebreaker_prompt, theme } = body || {}
+    // Authenticate: expect Authorization: Bearer <token>
+    const authHeader = request.headers.get('authorization') || ''
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader
+
+    if (!token) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    // Use supabase.auth.getUser() to validate token
+    const { data: userData, error: userError } = await supabase.auth.getUser(token as any)
+    if (userError || !userData?.user) {
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
+    }
+
+    // Parse and validate body
+    let body: any
+    try {
+      body = await request.json()
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const { title, slug, tiebreaker_enabled, tiebreaker_answer, is_open, option_a_label, option_b_label, option_a_emoji, option_b_emoji, tiebreaker_prompt, theme } = body || {}
 
   if (!title || typeof title !== 'string' || !slug || typeof slug !== 'string') {
     return NextResponse.json({ error: 'Missing required fields: title, slug' }, { status: 400 })
@@ -108,4 +115,9 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ game: inserted })
+  } catch (err: any) {
+    console.error('Unhandled error in POST /api/admin/games', err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  }
+
 }

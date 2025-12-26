@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import EmojiPicker from '../components/EmojiPicker'
-import { getSupabaseClient } from '../../lib/supabase'
+import { getSupabaseClient } from '../../lib/supabaseClient'
 import type { Game } from '../../lib/types'
 import { loginWithEmail } from '../../auth';
 
