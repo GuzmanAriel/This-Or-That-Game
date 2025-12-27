@@ -389,9 +389,9 @@ export default function GamePage({ params }: Props) {
       )}
       <h2 className="text-5xl font-bold font-heading">Play: {game.title}</h2>
       {!playerId ? (
-        <p className="mt-2 text-gray-600">Please enter your first and last name to start the game.</p>
+        <p className="mt-2 text-lg">Please enter your first and last name to start the game.</p>
       ) : (
-        <div className="mt-3 text-gray-600 text-2xl">
+        <div className="mt-3 text-2xl">
           <p>Answer {game?.option_a_emoji ? game.option_a_emoji + ' ' : ''}{game?.option_a_label ?? 'Option A'} or {game?.option_b_emoji ? game.option_b_emoji + ' ' : ''}{game?.option_b_label ?? 'Option B'} for each question.</p>
           <p className="mt-3">Each correct answer earns one point. The player with the most correct answers wins the game.</p>
           {game?.tiebreaker_enabled && game?.tiebreaker_prompt && (
@@ -402,39 +402,6 @@ export default function GamePage({ params }: Props) {
           )}
         </div>
       )}
-      <div className="mt-5 text-gray-600 text-2xl">
-        <b>Invite people to:</b>
-        <div className="mt-2 flex items-center space-x-3">
-          <code className="text-2xl break-all">{siteUrl}/g/{game.slug}</code>
-          <button
-            onClick={async () => {
-              const url = `${siteUrl}/g/${game.slug}`
-              try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                  await navigator.clipboard.writeText(url)
-                } else {
-                  const ta = document.createElement('textarea')
-                  ta.value = url
-                  document.body.appendChild(ta)
-                  ta.select()
-                  document.execCommand('copy')
-                  ta.remove()
-                }
-                setCopiedUrl(true)
-                setTimeout(() => setCopiedUrl(false), 2000)
-              } catch (e) {
-                console.error('Copy failed', e)
-                alert('Copy failed')
-              }
-            }}
-            className="btn-primary"
-            aria-label="Copy game URL"
-          >
-            Copy
-          </button>
-          {copiedUrl && <span className="text-sm text-green-600">Copied!</span>}
-        </div>
-      </div>
 
       {!game.is_open && (
         <div className="mt-4 rounded-md bg-red-50 border border-red-200 p-3 text-red-700">
@@ -446,14 +413,14 @@ export default function GamePage({ params }: Props) {
       {/* If no playerId, show join form */}
       {!playerId ? (
         <section className="mt-6 max-w-md">
-          <h3 className="text-xl font-medium">Join game</h3>
+          <h3 className="text-xl font-bold">Join game</h3>
           <form onSubmit={handleJoin} className="mt-4 space-y-3">
             <div>
-              <label className="block text-sm font-medium">First name</label>
+              <label className="block text-md font-semibold">First name</label>
               <input name="first_name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
             </div>
             <div>
-              <label className="block text-sm font-medium">Last name</label>
+              <label className="block text-md font-semibold">Last name</label>
               <input name="last_name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
             </div>
             <div>
@@ -462,6 +429,41 @@ export default function GamePage({ params }: Props) {
               </button>
             </div>
           </form>
+
+          <div className="mt-8 text-2xl">
+            <h3 className="font-bold">Invite people to:</h3>
+            <div className="mt-2">
+              <code className="text-lg break-all">{siteUrl}/g/{game.slug}</code>
+              <br/>
+              <button
+                onClick={async () => {
+                  const url = `${siteUrl}/g/${game.slug}`
+                  try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                      await navigator.clipboard.writeText(url)
+                    } else {
+                      const ta = document.createElement('textarea')
+                      ta.value = url
+                      document.body.appendChild(ta)
+                      ta.select()
+                      document.execCommand('copy')
+                      ta.remove()
+                    }
+                    setCopiedUrl(true)
+                    setTimeout(() => setCopiedUrl(false), 2000)
+                  } catch (e) {
+                    console.error('Copy failed', e)
+                    alert('Copy failed')
+                  }
+                }}
+                className="btn-primary mt-3 block"
+                aria-label="Copy game URL"
+              >
+                Copy URL
+              </button>
+              {copiedUrl && <span className="text-sm text-green-600">Copied!</span>}
+            </div>
+          </div>
         </section>
       ) : (
         // Player exists: show questions and answer inputs
