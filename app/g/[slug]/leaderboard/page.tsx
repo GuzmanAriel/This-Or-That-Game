@@ -102,8 +102,42 @@ export default function LeaderboardPage({ params }: Props) {
           if (!scoresArr.find(s => s.player_id === p.id)) scoresArr.push({ player_id: p.id, first_name: p.first_name, last_name: p.last_name, score: 0 })
         })
 
-        // sort desc
-        scoresArr.sort((a, b) => b.score - a.score)
+        // sort desc by score; if tied and a numeric tiebreaker exists, rank by closeness
+        const tiebreakerCorrect = (gData as any).tiebreaker_answer ?? null
+        scoresArr.sort((a, b) => {
+          const scoreDiff = b.score - a.score
+          if (scoreDiff !== 0) return scoreDiff
+
+          // no tiebreaker configured — keep stable order
+          if (tiebreakerCorrect === null || tiebreakerCorrect === undefined) return 0
+
+          const aAnsRec = latestByPlayer[a.player_id]?.['tiebreaker']
+          const bAnsRec = latestByPlayer[b.player_id]?.['tiebreaker']
+          const aHas = aAnsRec && aAnsRec.answer_text !== undefined && aAnsRec.answer_text !== null && String(aAnsRec.answer_text).trim() !== ''
+          const bHas = bAnsRec && bAnsRec.answer_text !== undefined && bAnsRec.answer_text !== null && String(bAnsRec.answer_text).trim() !== ''
+
+          // players who submitted a tiebreaker rank above those who didn't
+          if (aHas && !bHas) return -1
+          if (!aHas && bHas) return 1
+
+          if (!aHas && !bHas) return 0
+
+          const aVal = Number(aAnsRec.answer_text)
+          const bVal = Number(bAnsRec.answer_text)
+          const target = Number(tiebreakerCorrect)
+          const aDiff = Number.isFinite(aVal) ? Math.abs(aVal - target) : Infinity
+          const bDiff = Number.isFinite(bVal) ? Math.abs(bVal - target) : Infinity
+
+          if (aDiff < bDiff) return -1
+          if (aDiff > bDiff) return 1
+
+          // final fallback: alphabetical by name for stable ordering
+          const aName = ((a.first_name ?? '') + ' ' + (a.last_name ?? '')).trim().toLowerCase()
+          const bName = ((b.first_name ?? '') + ' ' + (b.last_name ?? '')).trim().toLowerCase()
+          if (aName < bName) return -1
+          if (aName > bName) return 1
+          return 0
+        })
         setScores(scoresArr)
 
         // is admin if current user id matches created_by
