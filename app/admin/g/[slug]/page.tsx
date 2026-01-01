@@ -472,7 +472,7 @@ export default function AdminGamePage() {
                 <li key={q.id} className="rounded border p-3 question-card">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="text-lg font-bold">Question {q.order_index}</h4>
+                      <h4 className="text-lg font-bold">Question {q.order_index + 1}</h4>
                       {!e ? (
                         <div className="mt-1 font-medium text-lg">{q.prompt}</div>
                       ) : (
