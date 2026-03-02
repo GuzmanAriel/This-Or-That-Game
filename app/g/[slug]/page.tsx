@@ -374,7 +374,7 @@ export default function GamePage({ params }: Props) {
 
   // UI
   return (
-    <div className="container mx-auto p-8 max-w-3xl">
+    <div className="container mx-auto p-8 max-w-3xl" data-page="game">
       {showSubmittedModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-40" onClick={() => setShowSubmittedModal(false)} />

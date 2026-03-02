@@ -216,7 +216,7 @@ export default function AdminPage() {
 
   if (checking) {
     return (
-      <div className="container mx-auto px-8 pt-16 pb-8 max-w-lg">
+      <div className="container mx-auto px-8 pt-16 pb-8 max-w-lg" data-loggedIn={user ? "true" : "false"}>
         <h2 className="text-2xl font-semibold font-heading">Admin Login</h2>
         <p className="mt-4">Loading…</p>
       </div>
@@ -224,7 +224,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-8 pt-16 pb-8">
+    <div className="container mx-auto px-8 pt-16 pb-8" data-page="admin" data-loggedIn={user ? "true" : "false"}>
       <h2 className="text-2xl font-semibold font-heading">Admin Login</h2>
 
       {!user ? (

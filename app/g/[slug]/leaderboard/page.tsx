@@ -159,7 +159,7 @@ export default function LeaderboardPage({ params }: Props) {
   if (error) return <div className="p-8 text-red-600">{error}</div>
 
   return (
-    <div className="container mx-auto p-8 max-w-3xl">
+    <div className="container mx-auto p-8 max-w-3xl" data-page="leaderboard">
       <h2 className="text-2xl font-semibold">Leaderboard: {gameTitle || slug}</h2>
       {scores.length === 0 ? (
         <p className="mt-4 text-sm text-gray-600">No submissions yet.</p>

@@ -342,7 +342,7 @@ export default function AdminGamePage() {
   }
 
   return (
-    <div className="container mx-auto px-8 pt-16 pb-8">
+    <div className="container mx-auto px-8 pt-16 pb-8" data-page="admin-manage">
       <div className="mt-6 flex flex-col md:flex-row md:items-start md:space-x-12">
         <div className="mb-6 md:w-1/2">
           <h1 className="text-3xl font-bold">Manage Game</h1>
