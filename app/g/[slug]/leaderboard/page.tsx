@@ -81,7 +81,7 @@ export default function LeaderboardPage({ params }: Props) {
         })
         setPlayerAnswers(latestByPlayer)
 
-        // compute scores: only question answers count (question_id != null). map correct 'mom' -> 'A', 'dad' -> 'B'
+        // compute scores: only question answers count (question_id != null). normalize stored correct answers to 'A'/'B' (legacy values mapped)
         const scoresArr: Array<{ player_id: string; first_name?: string; last_name?: string; score: number }> = []
         for (const pid of Object.keys(latestByPlayer)) {
           const answersMapPerPlayer = latestByPlayer[pid]
@@ -90,7 +90,7 @@ export default function LeaderboardPage({ params }: Props) {
             const submitted = answersMapPerPlayer[qid]
             if (!submitted) continue
             const q = qMap[qid]
-            const expected = q.correct_answer === 'mom' ? 'A' : q.correct_answer === 'dad' ? 'B' : q.correct_answer
+            const expected = q.correct_answer === 'A' ? 'A' : q.correct_answer === 'B' ? 'B' : String(q.correct_answer)
             if (String(submitted.answer_text) === String(expected)) score += 1
           }
           const p = pMap[pid]
@@ -198,7 +198,7 @@ export default function LeaderboardPage({ params }: Props) {
                 {Object.values(questionsMap).sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0)).map((q: any, idx: number) => {
                   const answersMapPerPlayer = (playerAnswers[selectedPlayer] ?? {}) as Record<string, any>
                   const submitted = answersMapPerPlayer[q.id]?.answer_text ? String(answersMapPerPlayer[q.id].answer_text) : ''
-                  const expectedLetter = q.correct_answer === 'mom' ? 'A' : q.correct_answer === 'dad' ? 'B' : String(q.correct_answer)
+                  const expectedLetter = q.correct_answer === 'A' ? 'A' : q.correct_answer === 'B' ? 'B' : String(q.correct_answer)
                   const expectedLabel = expectedLetter === 'A' ? (gameOptionA ?? 'Option A') : (gameOptionB ?? 'Option B')
                   const submittedLabel = submitted === 'A' ? (gameOptionA ?? 'Option A') : submitted === 'B' ? (gameOptionB ?? 'Option B') : submitted
                   const correct = submitted !== '' && String(submitted) === String(expectedLetter)

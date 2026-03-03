@@ -5,8 +5,8 @@ import RootClient from './RootClient'
 import { inter, playfair, cormorant } from './fonts'
 
 export const metadata = {
-  title: 'Is It Mom or Dad?',
-  description: 'Baby shower trivia — Is It Mom or Dad?'
+  title: 'This or That',
+  description: 'Customizable two-option guessing game'
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,4 +1,4 @@
-export type AnswerChoice = 'mom' | 'dad'
+export type AnswerChoice = 'A' | 'B'
 
 export interface Game {
   id: string

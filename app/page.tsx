@@ -88,7 +88,7 @@ export default function HomePage() {
             A fun, customizable guessing game for baby showers, weddings, parties, and more.
           </p>
           <p>
-            Players answer funny or thoughtful questions by choosing between two options — for example “Mom or Dad?”, “Bride or Groom?”, “Coffee or Tea?”, and so on. Admins can create their own game, add questions, and share the link with players.
+            Players answer funny or thoughtful questions by choosing between two options — for example “Option A or Option B”, “Bride or Groom?”, “Coffee or Tea?”, and so on. Admins can create their own game, add questions, and share the link with players.
           </p>
         </div>
       </header>

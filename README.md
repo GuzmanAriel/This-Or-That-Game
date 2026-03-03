@@ -1,4 +1,4 @@
-# Is It Mom or Dad? — Scaffold
+# This or That — Scaffold
 
 This repository contains a scaffold for a small Next.js (App Router) + Supabase project.
 

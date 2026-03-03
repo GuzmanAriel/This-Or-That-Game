@@ -3,7 +3,7 @@ import { getSupabaseServiceClient } from '../../../../../../lib/supabaseService'
 
 type ReqBody = {
   prompt?: string
-  correct_answer?: 'mom' | 'dad' | string
+  correct_answer?: 'A' | 'B' | string
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -52,8 +52,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
   if (!prompt || typeof prompt !== 'string') {
     return NextResponse.json({ error: 'Missing prompt' }, { status: 400 })
   }
-  if (!correct_answer || (correct_answer !== 'mom' && correct_answer !== 'dad')) {
-    return NextResponse.json({ error: 'Invalid correct_answer, must be "mom" or "dad"' }, { status: 400 })
+  if (!correct_answer || (correct_answer !== 'A' && correct_answer !== 'B')) {
+    return NextResponse.json({ error: 'Invalid correct_answer, must be "A" or "B"' }, { status: 400 })
   }
 
   // Ensure game exists
@@ -94,7 +94,9 @@ export async function POST(request: Request, { params }: { params: { id: string 
   }
 
   const { data: inserted, error: insertErr } = await supabase.from('questions').insert(insertPayload).select().single()
-  if (insertErr) return NextResponse.json({ error: 'Failed to insert question' }, { status: 500 })
+  if (insertErr) {
+    return NextResponse.json({ error: 'Failed to insert question' }, { status: 500 })
+  }
 
   return NextResponse.json({ question: inserted }, { status: 201 })
 }
