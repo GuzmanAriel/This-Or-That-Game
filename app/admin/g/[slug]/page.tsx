@@ -400,7 +400,7 @@ export default function AdminGamePage() {
                         <button type="submit" disabled={savingLabels} className="btn-primary">
                           {savingLabels ? 'Saving…' : 'Save'}
                         </button>
-                        <button type="button" className="inline-flex items-center px-3 py-1 rounded border" onClick={() => {
+                        <button type="button" className="btn-cancel" onClick={() => {
                           // cancel edits: reset fields from `game` and exit edit mode
                           setOptionA((game as any)?.option_a_label ?? '')
                           setOptionB((game as any)?.option_b_label ?? '')
@@ -487,7 +487,7 @@ export default function AdminGamePage() {
                         setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: false, error: err?.message ?? 'Save failed' } }))
                       }
                     }}>Save</button>
-                    <button className="px-3 py-1 inline-flex items-center rounded border" onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
+                    <button className="btn-cancel" onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
                   </div>
                 )}>
                   <div>
@@ -559,7 +559,7 @@ export default function AdminGamePage() {
                       </div>
                       <div className="mt-2 space-x-2">
                         <button className="px-3 py-1 btn-primary" onClick={async () => { await handleSaveTiebreaker() }}>Save</button>
-                        <button className="px-3 py-1 inline-flex items-center rounded border" onClick={() => {
+                        <button className="btn-cancel" onClick={() => {
                           // cancel edits: restore from `game`
                           setTiebreakerEnabledLocal(Boolean((game as any)?.tiebreaker_enabled))
                           setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')

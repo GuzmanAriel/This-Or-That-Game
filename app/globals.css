@@ -156,6 +156,20 @@ body[data-theme='baby-autumn'] .btn-primary:active {
   background-color: #1f3f54;
 }
 
+/* Cancel button: visually neutral but matches btn-primary spacing */
+.btn-cancel {
+  @apply px-4 py-2 rounded inline-block text-lg font-medium;
+  background-color: transparent;
+  color: var(--color-body);
+  border: 2px solid var(--color-border);
+}
+.btn-cancel:hover {
+  background-color: rgba(0,0,0,0.03);
+}
+.btn-cancel:active {
+  background-color: rgba(0,0,0,0.06);
+}
+
 /* baby-autumn overrides */
 body[data-theme='baby-autumn'] .btn-secondary {
   background-color: #DC744E;
