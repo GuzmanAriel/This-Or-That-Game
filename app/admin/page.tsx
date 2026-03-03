@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import EmojiPicker from '../components/EmojiPicker'
+import Card from '../components/Card'
 import { getSupabaseClient } from '../../lib/supabaseClient'
 import type { Game } from '../../lib/types'
 import { loginWithEmail } from '../../auth';
@@ -216,7 +217,7 @@ export default function AdminPage() {
 
   if (checking) {
     return (
-      <div className="container mx-auto px-8 pt-16 pb-8 max-w-lg" data-loggedIn={user ? "true" : "false"}>
+      <div className="container mx-auto px-8 pt-16 pb-8 max-w-lg" data-loggedin={user ? "true" : "false"}>
         <h2 className="text-2xl font-semibold font-heading">Admin Login</h2>
         <p className="mt-4">Loading…</p>
       </div>
@@ -224,7 +225,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-8 pt-16 pb-8" data-page="admin" data-loggedIn={user ? "true" : "false"}>
+    <div className="container mx-auto px-8 pt-16 pb-8" data-page="admin" data-loggedin={user ? "true" : "false"}>
       <h2 className="text-2xl font-semibold font-heading">Admin Login</h2>
 
       {!user ? (
@@ -440,16 +441,16 @@ export default function AdminPage() {
               ) : (
                 <ul className="mt-4 space-y-3">
                   {games.map((g) => (
-                    <li key={g.id} className="flex items-center justify-between rounded-md border p-3">
-                      <div>
-                        <a href={`/g/${g.slug}`} className="font-medium">{g.title}</a>
-                        <div className="text-sm text-gray-500">/{g.slug}</div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <a href={`/admin/g/${g.slug}`} className="text-sm text-gray-700 hover:underline">Manage</a>
-                        <a href={`/g/${g.slug}/leaderboard`} className="text-sm text-gray-700 hover:underline">Leaderboard</a>
-                      </div>
-                    </li>
+                    <Card
+                      key={g.id}
+                      id={g.id}
+                      title={<a href={`/g/${g.slug}`} className="font-medium">{g.title}</a>}
+                      subtitle={`/${g.slug}`}
+                      links={[
+                        { text: 'Manage', href: `/admin/g/${g.slug}`, style: 'btn-primary' },
+                        { text: 'Leaderboard', href: `/g/${g.slug}/leaderboard`, style: 'btn-primary' }
+                      ]}
+                    />
                   ))}
                 </ul>
               )}
