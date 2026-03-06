@@ -425,9 +425,9 @@ export default function AdminGamePage() {
                 {/* QR code suitable for printing; SITE URL is read from NEXT_PUBLIC_SITE_URL. Uses local qrcode to create a data URI. */}
                 <div>
                   {qrDataUrl ? (
-                    <img src={qrDataUrl} alt="QR code" className="mx-auto" />
+                    <img src={qrDataUrl} alt="QR code" className="mx-auto qr-printable" />
                   ) : (
-                    <div className="h-40 w-40 mx-auto bg-gray-100 flex items-center justify-center">QR</div>
+                    <div className="h-40 w-40 mx-auto bg-gray-100 flex items-center justify-center qr-printable">QR</div>
                   )}
                   <div className="mt-2 text-sm break-all">{qrDataUrl ? undefined : `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/g/${game.slug}`}</div>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
