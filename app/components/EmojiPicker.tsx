@@ -13,7 +13,7 @@ export default function EmojiPicker({ value, onChange }: Props) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block" data-component="emoji-picker">
       <button type="button" onClick={() => setOpen(s => !s)} className="px-2 py-1 border rounded text-lg">
         {value ?? '🙂'}
       </button>

@@ -483,7 +483,7 @@ export default function GamePage({ params }: Props) {
                         {game.is_open && (
                           <button
                             onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '', loading: false }), saved: false } }))}
-                            className="btn-secondary text-sm"
+                            className="btn-primary text-sm"
                           >
                             Edit
                           </button>
@@ -543,7 +543,7 @@ export default function GamePage({ params }: Props) {
                         {game.is_open && (
                           <button
                             onClick={() => setTiebreakerState(prev => ({ ...prev, saved: false }))}
-                            className="btn-secondary text-sm"
+                            className="btn-primary text-sm"
                           >
                             Edit
                           </button>

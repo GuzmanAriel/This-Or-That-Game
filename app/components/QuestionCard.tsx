@@ -12,7 +12,7 @@ type Props = {
 
 export default function QuestionCard({ id, children, actions, footer, className }: Props) {
   return (
-    <li key={id} className={`rounded border p-3 question-card ${className ?? ''}`}>
+    <li key={id} className={`rounded border p-3 question-card ${className ?? ''}`} data-component="question-card">
       <div>
         <div>{children}</div>
         {actions ? <div className="mt-4">{actions}</div> : null}

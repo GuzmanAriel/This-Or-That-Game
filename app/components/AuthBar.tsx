@@ -153,7 +153,7 @@ export default function AuthBar() {
   }
 
   return (
-    <div className="w-full border-b authbar shadow-sm relative">
+    <div className="w-full border-b authbar shadow-sm relative" data-component="authbar">
       <div className="container mx-auto px-3 py-5 flex items-center justify-between font-heading">
         {/* Brand / home link */}
           <div className="flex items-center space-x-4">

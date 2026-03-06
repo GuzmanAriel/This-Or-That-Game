@@ -37,10 +37,10 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="container mx-auto p-8">
+    <div className="container mx-auto p-8" data-page="signup">
       <h2 className="text-2xl font-semibold">Sign up</h2>
 
-      <form onSubmit={handleSignUp} className="mt-6 max-w-md">
+      <form onSubmit={handleSignUp} className="mt-6 max-w-md" data-component="signup-form">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
           <input

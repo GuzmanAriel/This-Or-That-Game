@@ -20,7 +20,7 @@ type CardProps = {
 
 export default function Card({ id, title, subtitle, text, links = [], className = '' }: CardProps) {
   return (
-    <li className={`rounded-md border p-3 ${className}`}>
+    <li className={`rounded-md border p-3 ${className}`} data-component="card" key={id}>
       <div>
         <div className="font-medium">{title}</div>
         {subtitle && <div className="text-sm text-gray-500">{subtitle}</div>}

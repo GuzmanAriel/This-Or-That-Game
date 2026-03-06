@@ -15,7 +15,7 @@ type Props = {
 
 export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, adminGames, submittedGames, onSignOut }: Props) {
   return (
-    <div className={`mobile-menu ${open ? 'open' : ''}`} aria-hidden={!open}>
+    <div className={`mobile-menu ${open ? 'open' : ''}`} aria-hidden={!open} data-component="mobile-menu">
       <nav className="p-6">
         <a href="/" onClick={onClose} className="block text-xl font-semibold">Home</a>
         {isAdmin && <a href="/admin" onClick={onClose} className="block text-xl font-semibold mt-6">Admin</a>}
