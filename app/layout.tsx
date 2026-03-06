@@ -5,7 +5,7 @@ import RootClient from './RootClient'
 import { inter, playfair, cormorant } from './fonts'
 
 export const metadata = {
-  title: 'This or That',
+  title: 'This or That Game',
   description: 'Customizable two-option guessing game'
 }
 
