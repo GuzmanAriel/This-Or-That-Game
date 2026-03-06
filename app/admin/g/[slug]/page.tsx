@@ -342,6 +342,15 @@ export default function AdminGamePage() {
     }
   }
 
+  const fullUrl = (() => {
+    try {
+      const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '')
+      return siteUrl ? `${siteUrl}/g/${game?.slug}` : (typeof window !== 'undefined' ? `${window.location.origin}/g/${game?.slug}` : `/g/${game?.slug}`)
+    } catch (e) {
+      return `/g/${game?.slug}`
+    }
+  })()
+
   return (
     <div className="container mx-auto px-8 pt-16 pb-8" data-page="admin-manage">
       <div className="mt-6 flex flex-col md:flex-row md:items-start md:space-x-12">
@@ -425,7 +434,13 @@ export default function AdminGamePage() {
                 {/* QR code suitable for printing; SITE URL is read from NEXT_PUBLIC_SITE_URL. Uses local qrcode to create a data URI. */}
                 <div>
                   {qrDataUrl ? (
-                    <img src={qrDataUrl} alt="QR code" className="mx-auto qr-printable" />
+                    <div className="mx-auto qr-printable">
+                      <div className="print-only text-center mb-4">
+                        <div className="text-3xl mb-3 font-semibold">{game.title}</div>
+                        <div className="text-lg break-all">{fullUrl}</div>
+                      </div>
+                      <img src={qrDataUrl} alt="QR code" className="mx-auto" />
+                    </div>
                   ) : (
                     <div className="h-40 w-40 mx-auto bg-gray-100 flex items-center justify-center qr-printable">QR</div>
                   )}
