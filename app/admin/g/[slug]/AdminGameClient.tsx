@@ -480,8 +480,8 @@ export default function AdminGameClient() {
         <section className="md:w-1/2">
           <h2 className="text-3xl font-bold mb-3">Questions</h2>
 
-          <ul className="space-y-2">
-            {questions.length === 0 && <li className="text-sm text-gray-600">No questions yet</li>}
+          <div className="space-y-2">
+            {questions.length === 0 && <div className="text-sm text-gray-600">No questions yet</div>}
             {questions.map((q) => {
               const e = editing[q.id]
               return (
@@ -587,7 +587,7 @@ export default function AdminGameClient() {
                 )}
               </QuestionCard>
             )}
-          </ul>
+          </div>
 
           <form onSubmit={handleAddQuestion} className="mt-6 space-y-3">
             <div>

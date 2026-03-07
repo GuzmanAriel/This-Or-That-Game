@@ -12,12 +12,10 @@ type Props = {
 
 export default function QuestionCard({ id, children, actions, footer, className }: Props) {
   return (
-    <li key={id} className={`rounded border p-3 question-card ${className ?? ''}`} data-component="question-card">
-      <div>
-        <div>{children}</div>
+    <div className={`rounded border p-3 question-card ${className ?? ''}`} data-component="question-card">
+        {children}
         {actions ? <div className="mt-4">{actions}</div> : null}
-      </div>
       {footer ? <div className="mt-2 text-sm text-red-600">{footer}</div> : null}
-    </li>
+    </div>
   )
 }

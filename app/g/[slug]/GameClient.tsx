@@ -289,7 +289,9 @@ export default function GameClient({ params }: Props) {
     // Tiebreaker submission is handled by Submit All; keep function empty to avoid accidental usage.
   }
 
-  async function handleSubmitAll() {
+  async function handleSubmitAll(e?: React.FormEvent) {
+    // called as form submit handler: prevent default
+    try { e?.preventDefault?.() } catch (err) {}
     if (!game || !playerId) return
     if (!game.is_open) return alert('Submissions are closed for this game')
     // ensure all non-saved questions have a selected answer
@@ -445,67 +447,76 @@ export default function GameClient({ params }: Props) {
         // Player exists: show questions and answer inputs
         <section className="mt-8">
           <h3 className="text-2xl font-semibold">Questions</h3>
-          <ul className="mt-3 space-y-5">
-            {questions.length === 0 && <li className="text-lg text-gray-600">No questions yet</li>}
+          <form onSubmit={handleSubmitAll}>
+          <div className="mt-3 space-y-5">
+            {questions.length === 0 && <div className="text-lg text-gray-600">No questions yet</div>}
                 {questions.map((q) => {
                   const st = answersState[q.id] ?? { value: '', loading: false }
                   return (
                     <QuestionCard key={q.id} id={q.id} footer={st.error} actions={(
                       <div className="px-3 py-1 rounded-md text-sm">
-                    {st.saved ? (
-                      <div className="flex items-center space-x-2">
-                        <span className="text-green-600">Saved</span>
-                        {game.is_open && (
-                          <button
-                            onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '', loading: false }), saved: false } }))}
-                            className="btn-primary text-sm"
-                          >
-                            Edit
-                          </button>
+                        {st.saved ? (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-green-600">Saved</span>
+                            {game.is_open && (
+                              <button
+                                onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '', loading: false }), saved: false } }))}
+                                className="btn-primary text-sm"
+                              >
+                                Edit
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-600">Not saved</span>
                         )}
                       </div>
-                    ) : (
-                      <span className="text-gray-600">Not saved</span>
-                    )}
-                      </div>
                     )}>
-                      <div>
-                        <h4 className="text-lg font-bold">Question {q.order_index + 1}</h4>
-                        <div className="mt-1 font-medium text-lg">{q.prompt}</div>
-                        <div className="mt-3 flex items-center space-x-2">
-                          <div className="flex items-center space-x-4">
-                            <button
-                              type="button"
-                              onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))}
-                              disabled={st.saved || !game.is_open}
-                              aria-pressed={st.value === 'A'}
-                              className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${st.value === 'A' ? 'selected' : ''}`}
-                            >
-                              <span>{game?.option_a_emoji ? game.option_a_emoji + ' ' : ''}{game?.option_a_label ?? 'Option A'}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))}
-                              disabled={st.saved || !game.is_open}
-                              aria-pressed={st.value === 'B'}
-                              className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${st.value === 'B' ? 'selected' : ''}`}
-                            >
-                              <span>{game?.option_b_emoji ? game.option_b_emoji + ' ' : ''}{game?.option_b_label ?? 'Option B'}</span>
-                            </button>
+                        <fieldset className="border-0 p-0">
+                          <legend id={`question-${q.id}`}>
+                            <h4 className="text-lg font-bold">Question {q.order_index + 1}</h4>
+                            <div className="text-lg font-medium">{q.prompt}</div>
+                          </legend>
+                          <div className="mt-3 flex items-center space-x-4">
+                            <label className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border option-button ${st.value === 'A' ? 'selected' : ''}`}> 
+                              <input
+                                className="sr-only"
+                                type="radio"
+                                name={`q-${q.id}`}
+                                value="A"
+                                aria-labelledby={`question-${q.id} question-${q.id}-option-A`}
+                                checked={st.value === 'A'}
+                                disabled={st.saved || !game.is_open}
+                                onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))}
+                              />
+                              <span id={`question-${q.id}-option-A`}>{game?.option_a_emoji ? game.option_a_emoji + ' ' : ''}{game?.option_a_label ?? 'Option A'}</span>
+                            </label>
+                            <label className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border option-button ${st.value === 'B' ? 'selected' : ''}`}> 
+                              <input
+                                className="sr-only"
+                                type="radio"
+                                name={`q-${q.id}`}
+                                value="B"
+                                aria-labelledby={`question-${q.id} question-${q.id}-option-B`}
+                                checked={st.value === 'B'}
+                                disabled={st.saved || !game.is_open}
+                                onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))}
+                              />
+                              <span id={`question-${q.id}-option-B`}>{game?.option_b_emoji ? game.option_b_emoji + ' ' : ''}{game?.option_b_label ?? 'Option B'}</span>
+                            </label>
                           </div>
-                        </div>
-                      </div>
+                        </fieldset>
                     </QuestionCard>
                   )
                 })}
             {game.tiebreaker_enabled && game.tiebreaker_prompt && (
               <QuestionCard key="tiebreaker" id="tiebreaker" footer={tiebreakerState.error}>
-                <div>
-                  <h4 className="text-lg font-bold">Tiebreaker</h4>
-                  <div className="mt-1 font-medium text-lg">{game.tiebreaker_prompt}</div>
+                  <h4 id={`tiebreaker-${game.id}-label`} className="text-lg font-bold">Tiebreaker</h4>
+                  <div id={`tiebreaker-${game.id}-prompt`} className="mt-1 font-medium text-lg">{game.tiebreaker_prompt}</div>
                   <div className="mt-3">
                     <input
                       type="number"
+                      aria-labelledby={`tiebreaker-${game.id}-label tiebreaker-${game.id}-prompt`}
                       value={tiebreakerState.value}
                       onChange={(e) => setTiebreakerState(prev => ({ ...prev, value: e.target.value, saved: false }))}
                       className="block w-48 rounded-md border-gray-300 shadow-sm p-2"
@@ -532,15 +543,14 @@ export default function GameClient({ params }: Props) {
                       )
                     )}
                   </div>
-                </div>
               </QuestionCard>
             )}
-          </ul>
+            </div>
 
             <div className="mt-6 flex items-center space-x-4">
               {game.is_open && (
                 <button
-                  onClick={() => handleSubmitAll()}
+                  type="submit"
                   className="btn-primary"
                   disabled={submittingAll}
                 >
@@ -552,6 +562,7 @@ export default function GameClient({ params }: Props) {
                 <a href={`/g/${game.slug}/leaderboard`} className="btn-secondary">View Leaderboard</a>
               )}
             </div>
+          </form>
         </section>
       )}
     </div>

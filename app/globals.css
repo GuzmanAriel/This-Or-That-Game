@@ -233,6 +233,36 @@ body[data-theme='baby-autumn'] .option-button.selected {
   border-color: #DC744E;
 }
 
+/* Focus styles for interactive buttons and option controls (general) */
+.btn-primary:focus,
+.btn-primary:focus-visible,
+.option-button:focus,
+.option-button:focus-visible,
+.btn-cancel:focus,
+.btn-cancel:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(145,53,114,0.25);
+  border-radius: 0.375rem;
+}
+
+/* When an input inside the label receives focus, highlight the label too */
+.option-button:focus-within,
+.option-button:focus-within:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(145,53,114,0.25);
+}
+
+/* Use a theme-appropriate focus ring for baby-autumn */
+body[data-theme='baby-autumn'] .btn-primary:focus,
+body[data-theme='baby-autumn'] .btn-primary:focus-visible,
+body[data-theme='baby-autumn'] .option-button:focus,
+body[data-theme='baby-autumn'] .option-button:focus-visible,
+body[data-theme='baby-autumn'] .btn-cancel:focus,
+body[data-theme='baby-autumn'] .btn-cancel:focus-visible {
+  box-shadow: 0 0 0 4px rgba(142,41,8,0.25);
+  outline: none;
+}
+
 /* Ensure base font uses CSS variable */
 body {
   font-family: var(--font-body);
