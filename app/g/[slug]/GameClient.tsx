@@ -286,32 +286,7 @@ export default function GameClient({ params }: Props) {
   }
 
   async function handleTiebreakerSubmit() {
-    if (!game || !playerId) return
-    if (!game.is_open) return alert('Submissions are closed for this game')
-    if (!game.tiebreaker_enabled) return
-    const val = tiebreakerState.value?.trim()
-    if (!val) return alert('Please enter your tiebreaker answer')
-
-    // only allow numeric answers
-    if (!/^-?\d+(?:\.\d+)?$/.test(val)) {
-      return alert('Tiebreaker answer must be a number')
-    }
-
-    setTiebreakerState(prev => ({ ...prev, loading: true, error: undefined }))
-    try {
-      const payload = {
-        game_id: game.id,
-        player_id: playerId,
-        question_id: null,
-        answer_text: val
-      }
-      const { error } = await supabase.from('answers').insert(payload)
-      if (error) throw error
-      setTiebreakerState(prev => ({ ...prev, loading: false, saved: true }))
-      try { localStorage.removeItem(`answersDraft:${game.id}:${playerId}`) } catch (e) {}
-    } catch (err: any) {
-      setTiebreakerState(prev => ({ ...prev, loading: false, error: err?.message ?? 'Submit failed' }))
-    }
+    // Tiebreaker submission is handled by Submit All; keep function empty to avoid accidental usage.
   }
 
   async function handleSubmitAll() {
@@ -550,17 +525,11 @@ export default function GameClient({ params }: Props) {
                         )}
                       </div>
                     ) : (
-                      (game.is_open ? (
-                        <button
-                          onClick={() => handleTiebreakerSubmit()}
-                          className="btn-primary mt-3"
-                          disabled={tiebreakerState.loading}
-                        >
-                          {tiebreakerState.loading ? 'Saving…' : 'Submit'}
-                        </button>
+                      game.is_open ? (
+                        <div className="text-sm text-gray-600 mt-2">Will be submitted with "Submit All Answers"</div>
                       ) : (
                         <span className="text-sm text-gray-500">Submissions closed</span>
-                      ))
+                      )
                     )}
                   </div>
                 </div>
