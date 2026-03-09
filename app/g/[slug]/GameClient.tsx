@@ -370,7 +370,7 @@ export default function GameClient({ params }: Props) {
         <p className="mt-2 text-lg">Please enter your first and last name to start the game.</p>
       ) : (
         <div className="mt-3 text-2xl">
-          <p>Answer {game?.option_a_emoji ? game.option_a_emoji + ' ' : ''}{game?.option_a_label ?? 'Option A'} or {game?.option_b_emoji ? game.option_b_emoji + ' ' : ''}{game?.option_b_label ?? 'Option B'} for each question.</p>
+          <p>Answer {game?.option_a_emoji && <span aria-hidden="true">{game.option_a_emoji} </span>}{game?.option_a_label ?? 'Option A'} or {game?.option_b_emoji && <span aria-hidden="true">{game.option_b_emoji} </span>}{game?.option_b_label ?? 'Option B'} for each question.</p>
           <p className="mt-3">Each correct answer earns one point. The player with the most correct answers wins the game.</p>
           {game?.tiebreaker_enabled && game?.tiebreaker_prompt && (
             <div className="mt-3">
@@ -489,7 +489,7 @@ export default function GameClient({ params }: Props) {
                                 disabled={st.saved || !game.is_open}
                                 onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))}
                               />
-                              <span id={`question-${q.id}-option-A`}>{game?.option_a_emoji ? game.option_a_emoji + ' ' : ''}{game?.option_a_label ?? 'Option A'}</span>
+                              <span id={`question-${q.id}-option-A`}>{game?.option_a_emoji && <span aria-hidden="true">{game.option_a_emoji} </span>}{game?.option_a_label ?? 'Option A'}</span>
                             </label>
                             <label className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border option-button ${st.value === 'B' ? 'selected' : ''}`}> 
                               <input
@@ -502,7 +502,7 @@ export default function GameClient({ params }: Props) {
                                 disabled={st.saved || !game.is_open}
                                 onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))}
                               />
-                              <span id={`question-${q.id}-option-B`}>{game?.option_b_emoji ? game.option_b_emoji + ' ' : ''}{game?.option_b_label ?? 'Option B'}</span>
+                              <span id={`question-${q.id}-option-B`}>{game?.option_b_emoji && <span aria-hidden="true">{game.option_b_emoji} </span>}{game?.option_b_label ?? 'Option B'}</span>
                             </label>
                           </div>
                         </fieldset>
