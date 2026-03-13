@@ -474,7 +474,7 @@ export default function GameClient({ params }: Props) {
                 id="error-summary"
                 ref={errorSummaryRef}
                 tabIndex={-1}
-                className="mt-3 rounded-md bg-yellow-50 border border-yellow-200 p-3 text-yellow-800"
+                className="mt-3 rounded-md bg-red-200 border border-red-200 p-3 text-red-800"
                 role="group"
                 aria-labelledby="error-summary-title"
               >
