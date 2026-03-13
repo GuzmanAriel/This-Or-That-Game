@@ -45,6 +45,9 @@ export default function GameClient({ params }: Props) {
   const [submittingAll, setSubmittingAll] = useState(false)
   const [showSubmittedModal, setShowSubmittedModal] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(false)
+  // validation / progress UI state
+  const [validationSummary, setValidationSummary] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   // check for existing player id in localStorage for this game
   useEffect(() => {
@@ -294,10 +297,24 @@ export default function GameClient({ params }: Props) {
     try { e?.preventDefault?.() } catch (err) {}
     if (!game || !playerId) return
     if (!game.is_open) return alert('Submissions are closed for this game')
-    // ensure all non-saved questions have a selected answer
-    const missing = questions.filter(q => !(answersState[q.id]?.saved) && !(answersState[q.id]?.value))
+    // ensure all questions have a selected answer (we don't consider saved flag here)
+    const missing = questions.filter(q => !(answersState[q.id]?.value))
     if (missing.length > 0) {
-      return alert('Please answer all questions before submitting')
+      // build validation errors map
+      const errs: Record<string, string> = {}
+      missing.forEach(q => { errs[q.id] = 'Please select an option.' })
+      setValidationErrors(errs)
+      setValidationSummary(`You still have ${missing.length} question${missing.length === 1 ? '' : 's'} left.`)
+      // scroll to and focus first unanswered question container
+      try {
+        const first = missing[0]
+        const el = document.getElementById(`question-container-${first.id}`)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          ;(el as HTMLElement).focus()
+        }
+      } catch (err) {}
+      return
     }
 
     // if tiebreaker enabled, ensure it's numeric (if not yet saved)
@@ -366,6 +383,14 @@ export default function GameClient({ params }: Props) {
         </div>
       )}
       <h2 className="text-5xl font-bold font-heading">Play: {game.title}</h2>
+      <div className="mt-3 flex items-center justify-between">
+        <div aria-live="polite" className="text-lg text-gray-700">{`${questions.filter(q => answersState[q.id]?.value).length} of ${questions.length} questions answered`}</div>
+      </div>
+      {validationSummary && (
+        <div aria-live="assertive" className="mt-3 rounded-md bg-yellow-50 border border-yellow-200 p-3 text-yellow-800">
+          {validationSummary}
+        </div>
+      )}
       {!playerId ? (
         <p className="mt-2 text-lg">Please enter your first and last name to start the game.</p>
       ) : (
@@ -453,26 +478,9 @@ export default function GameClient({ params }: Props) {
                 {questions.map((q) => {
                   const st = answersState[q.id] ?? { value: '', loading: false }
                   return (
-                    <QuestionCard key={q.id} id={q.id} footer={st.error} actions={(
-                      <div className="px-3 py-1 rounded-md text-sm">
-                        {st.saved ? (
-                          <div className="flex items-center space-x-2">
-                            <span className="text-green-600">Saved</span>
-                            {game.is_open && (
-                              <button
-                                onClick={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '', loading: false }), saved: false } }))}
-                                className="btn-primary text-sm"
-                              >
-                                Edit
-                              </button>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-600">Not saved</span>
-                        )}
-                      </div>
-                    )}>
-                        <fieldset className="border-0 p-0">
+                    <div key={q.id} id={`question-container-${q.id}`} tabIndex={-1}>
+                    <QuestionCard key={q.id} id={q.id} footer={validationErrors[q.id] ? (<div id={`error-${q.id}`} className="text-sm text-red-600">{validationErrors[q.id]}</div>) : undefined}>
+                        <fieldset className="border-0 p-0" role="radiogroup" aria-labelledby={`question-${q.id}`} aria-invalid={validationErrors[q.id] ? 'true' : undefined} aria-describedby={validationErrors[q.id] ? `error-${q.id}` : undefined}>
                           <legend id={`question-${q.id}`}>
                             <h4 className="text-lg font-bold">Question {q.order_index + 1}</h4>
                             <div className="text-lg font-medium">{q.prompt}</div>
@@ -486,8 +494,18 @@ export default function GameClient({ params }: Props) {
                                 value="A"
                                 aria-labelledby={`question-${q.id} question-${q.id}-option-A`}
                                 checked={st.value === 'A'}
-                                disabled={st.saved || !game.is_open}
-                                onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))}
+                                disabled={!game.is_open}
+                                aria-invalid={validationErrors[q.id] ? 'true' : undefined}
+                                aria-describedby={validationErrors[q.id] ? `error-${q.id}` : undefined}
+                                onChange={() => {
+                                  setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'A', saved: false } }))
+                                  setValidationErrors(prev => {
+                                    const next = { ...prev }
+                                    delete next[q.id]
+                                    if (Object.keys(next).length === 0) setValidationSummary(null)
+                                    return next
+                                  })
+                                }}
                               />
                               <span id={`question-${q.id}-option-A`}>{game?.option_a_emoji && <span aria-hidden="true">{game.option_a_emoji} </span>}{game?.option_a_label ?? 'Option A'}</span>
                             </label>
@@ -499,14 +517,25 @@ export default function GameClient({ params }: Props) {
                                 value="B"
                                 aria-labelledby={`question-${q.id} question-${q.id}-option-B`}
                                 checked={st.value === 'B'}
-                                disabled={st.saved || !game.is_open}
-                                onChange={() => setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))}
+                                disabled={!game.is_open}
+                                aria-invalid={validationErrors[q.id] ? 'true' : undefined}
+                                aria-describedby={validationErrors[q.id] ? `error-${q.id}` : undefined}
+                                onChange={() => {
+                                  setAnswersState(prev => ({ ...prev, [q.id]: { ...(prev[q.id] ?? { value: '' , loading: false}), value: 'B', saved: false } }))
+                                  setValidationErrors(prev => {
+                                    const next = { ...prev }
+                                    delete next[q.id]
+                                    if (Object.keys(next).length === 0) setValidationSummary(null)
+                                    return next
+                                  })
+                                }}
                               />
                               <span id={`question-${q.id}-option-B`}>{game?.option_b_emoji && <span aria-hidden="true">{game.option_b_emoji} </span>}{game?.option_b_label ?? 'Option B'}</span>
                             </label>
                           </div>
                         </fieldset>
                     </QuestionCard>
+                    </div>
                   )
                 })}
             {game.tiebreaker_enabled && game.tiebreaker_prompt && (
