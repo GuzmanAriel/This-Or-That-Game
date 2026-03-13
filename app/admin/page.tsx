@@ -447,8 +447,8 @@ export default function AdminPage() {
                       title={<a href={`/g/${g.slug}`} className="font-medium">{g.title}</a>}
                       subtitle={`/${g.slug}`}
                       links={[
-                        { text: 'Manage', href: `/admin/g/${g.slug}`, style: 'btn-primary' },
-                        { text: 'Leaderboard', href: `/g/${g.slug}/leaderboard`, style: 'btn-primary' }
+                          { text: 'Manage', href: `/admin/g/${g.slug}`, style: 'btn-primary', linkTitle: `Manage ${g.title}` },
+                          { text: 'Leaderboard', href: `/g/${g.slug}/leaderboard`, style: 'btn-primary', linkTitle: `Leaderboard for ${g.title}` }
                       ]}
                     />
                   ))}

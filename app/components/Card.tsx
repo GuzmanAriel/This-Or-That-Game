@@ -7,6 +7,7 @@ type LinkItem = {
   href?: string
   onClick?: () => void
   style?: string
+  linkTitle?: string
 }
 
 type CardProps = {
@@ -34,13 +35,13 @@ export default function Card({ id, title, subtitle, text, links = [], className 
             const classes = `${base} ${l.style ?? ''}`.trim()
             if (l.href) {
               return (
-                <a key={i} href={l.href} className={classes}>
+                <a key={i} href={l.href} className={classes} aria-label={l.linkTitle}>
                   {l.text}
                 </a>
               )
             }
             return (
-              <button key={i} type="button" onClick={l.onClick} className={classes}>
+              <button key={i} type="button" onClick={l.onClick} className={classes} aria-label={l.linkTitle}>
                 {l.text}
               </button>
             )

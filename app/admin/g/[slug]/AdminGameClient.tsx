@@ -166,11 +166,11 @@ export default function AdminGameClient() {
   if (checkingUser) return <div className="p-8">Checking auth…</div>
   if (!user) {
     return (
-      <div className="p-8">
+      <div className="container mx-auto p-8">
         <h2 className="text-xl font-semibold">Admin — Sign in required</h2>
         <p className="mt-4">You must be signed in as an admin to manage this game.</p>
         <div className="mt-4">
-          <a href="/admin">Go to Admin sign-in</a>
+          <a className="font-semibold hover:underline" href="/admin">Go to Admin sign-in</a>
         </div>
       </div>
     )
