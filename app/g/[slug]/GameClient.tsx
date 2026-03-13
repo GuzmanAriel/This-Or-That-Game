@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { getSupabaseClient } from '../../../lib/supabase'
 import type { Game, Question } from '../../../lib/types'
 import QuestionCard from '../../components/QuestionCard'
@@ -48,6 +48,7 @@ export default function GameClient({ params }: Props) {
   // validation / progress UI state
   const [validationSummary, setValidationSummary] = useState<string | null>(null)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const errorSummaryRef = useRef<HTMLDivElement | null>(null)
 
   // check for existing player id in localStorage for this game
   useEffect(() => {
@@ -304,15 +305,12 @@ export default function GameClient({ params }: Props) {
       const errs: Record<string, string> = {}
       missing.forEach(q => { errs[q.id] = 'Please select an option.' })
       setValidationErrors(errs)
-      setValidationSummary(`You still have ${missing.length} question${missing.length === 1 ? '' : 's'} left.`)
-      // scroll to and focus first unanswered question container
+      setValidationSummary(`You still have ${missing.length} question${missing.length === 1 ? '' : 's'} left to answer.`)
+      // Move focus to the error summary (rendered inside the form) after render
       try {
-        const first = missing[0]
-        const el = document.getElementById(`question-container-${first.id}`)
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          ;(el as HTMLElement).focus()
-        }
+        setTimeout(() => {
+          try { errorSummaryRef.current?.focus() } catch (e) {}
+        }, 50)
       } catch (err) {}
       return
     }
@@ -386,11 +384,8 @@ export default function GameClient({ params }: Props) {
       <div className="mt-3 flex items-center justify-between">
         <div aria-live="polite" className="text-lg text-gray-700">{`${questions.filter(q => answersState[q.id]?.value).length} of ${questions.length} questions answered`}</div>
       </div>
-      {validationSummary && (
-        <div aria-live="assertive" className="mt-3 rounded-md bg-yellow-50 border border-yellow-200 p-3 text-yellow-800">
-          {validationSummary}
-        </div>
-      )}
+      {/* Validation summary is rendered inside the form so we can move focus
+          to it when validation fails. See form rendering below. */}
       {!playerId ? (
         <p className="mt-2 text-lg">Please enter your first and last name to start the game.</p>
       ) : (
@@ -473,7 +468,37 @@ export default function GameClient({ params }: Props) {
         <section className="mt-8">
           <h3 className="text-2xl font-semibold">Questions</h3>
           <form onSubmit={handleSubmitAll}>
-          <div className="mt-3 space-y-5">
+            {/* Error summary (focusable) shown when validationSummary is set */}
+            {validationSummary && (
+              <div
+                id="error-summary"
+                ref={errorSummaryRef}
+                tabIndex={-1}
+                className="mt-3 rounded-md bg-yellow-50 border border-yellow-200 p-3 text-yellow-800"
+                role="group"
+                aria-labelledby="error-summary-title"
+              >
+                <p id="error-summary-title" className="font-semibold">{`You still have ${questions.filter(q => !answersState[q.id]?.value).length} question${questions.filter(q => !answersState[q.id]?.value).length === 1 ? '' : 's'} left to answer.`}</p>
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    className="underline text-sm"
+                    onClick={() => {
+                      const first = questions.find(q => !answersState[q.id]?.value)
+                      if (!first) return
+                      const el = document.getElementById(`question-container-${first.id}`)
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        try { ;(el as HTMLElement).focus() } catch (e) {}
+                      }
+                    }}
+                  >
+                    Go to first unanswered question
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="mt-3 space-y-5">
             {questions.length === 0 && <div className="text-lg text-gray-600">No questions yet</div>}
                 {questions.map((q) => {
                   const st = answersState[q.id] ?? { value: '', loading: false }
