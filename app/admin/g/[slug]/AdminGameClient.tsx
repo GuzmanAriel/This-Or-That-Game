@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { getSupabaseClient } from '../../../../lib/supabase'
 import type { Game, Question } from '../../../../lib/types'
@@ -35,6 +35,10 @@ export default function AdminGameClient() {
   const [tiebreakerEditing, setTiebreakerEditing] = useState(false)
 
   const [togglingOpen, setTogglingOpen] = useState(false)
+
+  const optionARef = useRef<HTMLInputElement | null>(null)
+  const optionBRef = useRef<HTMLInputElement | null>(null)
+  const editButtonRef = useRef<HTMLButtonElement | null>(null)
 
 
   // new question form
@@ -129,6 +133,16 @@ export default function AdminGameClient() {
     checkAuth()
     return () => { mounted = false }
   }, [supabase])
+
+  useEffect(() => {
+    if (editingLabels) {
+      // focus the first input when entering edit mode
+      optionARef.current?.focus()
+    } else {
+      // return focus to the edit button when leaving edit mode
+      editButtonRef.current?.focus()
+    }
+  }, [editingLabels])
 
   useEffect(() => {
     // generate QR data URL for the public play link using the local `qrcode` package
@@ -363,7 +377,7 @@ export default function AdminGameClient() {
                 <div className={`text-lg font-semibold mb-2 ${game.is_open ? 'text-green-600' : 'text-red-600'}`}>Status: {game.is_open ? 'Open' : 'Closed'}</div>
               
                 <div className="mt-4">
-                  {!editingLabels ? (
+                      {!editingLabels ? (
                     <div className="space-y-2">
                       <div>
                         <div className="text-md font-semibold">Option A label</div>
@@ -374,7 +388,7 @@ export default function AdminGameClient() {
                         <div className="mt-1 text-gray-900">{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</div>
                       </div>
                       <div className="flex items-center space-x-4">
-                        <button className="text-lg text-indigo-600 hover:underline" onClick={() => setEditingLabels(true)}>Edit labels</button>
+                        <button ref={editButtonRef} aria-expanded={editingLabels} aria-controls="labelsForm" className="text-lg text-indigo-600 hover:underline" onClick={() => setEditingLabels(true)}>Edit labels</button>
                         <button
                           className="text-lg text-red-600"
                           onClick={handleToggleOpen}
@@ -385,24 +399,26 @@ export default function AdminGameClient() {
                       </div>
                     </div>
                   ) : (
-                    <form onSubmit={handleSaveLabels} className="space-y-2">
+                    <form id="labelsForm" onSubmit={handleSaveLabels} className="space-y-2" aria-busy={savingLabels}>
                       <div>
-                        <label className="block text-md font-semibold">Option A label</label>
+                        <label htmlFor="optionA" className="block text-md font-semibold">Edit Option A label</label>
                         <div className="flex items-center space-x-2">
-                          <input value={optionA} onChange={(e) => setOptionA(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                          <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} />
+                          <input id="optionA" name="optionA" ref={optionARef} value={optionA} onChange={(e) => setOptionA(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" aria-describedby="optionAHelp" />
+                          <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} aria-label="Choose emoji for Option A" />
                         </div>
+                        <p id="optionAHelp" className="text-xs text-gray-500">Optional emoji appears before the label.</p>
                       </div>
                       <div>
-                        <label className="block text-md font-semibold">Option B label</label>
+                        <label htmlFor="optionB" className="block text-md font-semibold">Edit Option B label</label>
                         <div className="flex items-center space-x-2">
-                          <input value={optionB} onChange={(e) => setOptionB(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                          <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} />
+                          <input id="optionB" name="optionB" ref={optionBRef} value={optionB} onChange={(e) => setOptionB(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" aria-describedby="optionBHelp" />
+                          <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} aria-label="Choose emoji for Option B" />
                         </div>
+                        <p id="optionBHelp" className="text-xs text-gray-500">Optional emoji appears before the label.</p>
                       </div>
                       {/* Tiebreaker is edited inline under Questions */}
                       <div className="flex items-center space-x-2">
-                        <button type="submit" disabled={savingLabels} className="btn-primary">
+                        <button type="submit" disabled={savingLabels} className="btn-primary" aria-disabled={savingLabels}>
                           {savingLabels ? 'Saving…' : 'Save'}
                         </button>
                         <button type="button" className="btn-cancel" onClick={() => {
