@@ -361,10 +361,6 @@ export default function AdminGameClient() {
               <div>
                 <div className="text-2xl font-semibold mb-2">{game.title}</div>
                 <div className={`text-lg font-semibold mb-2 ${game.is_open ? 'text-green-600' : 'text-red-600'}`}>Status: {game.is_open ? 'Open' : 'Closed'}</div>
-                <div className="text-md font-semibold">Public play link:</div>
-                <div className="mb-3"><a href={`/g/${game.slug}`}>{`/g/${game.slug}`}</a></div>
-                <div className="mt-2 text-md font-semibold">Leaderboard</div>
-                <div className="mt-1 text-md"><a href={`/g/${game.slug}/leaderboard`}>{`/g/${game.slug}/leaderboard`}</a></div>
               
                 <div className="mt-4">
                   {!editingLabels ? (
@@ -424,30 +420,28 @@ export default function AdminGameClient() {
                     </form>
                   )}
                 </div>
-                <div className="mt-5 space-x-3">
-                  <a className="btn-primary" href={`/g/${game.slug}`}>Player link</a>
-                  <a className="btn-primary" href={`/g/${game.slug}/leaderboard`}>Leaderboard</a>
-                </div>
               </div>
 
               <div className="text-center mt-6">
                 {/* QR code suitable for printing; SITE URL is read from NEXT_PUBLIC_SITE_URL. Uses local qrcode to create a data URI. */}
                 <div>
                   {qrDataUrl ? (
-                    <div className="mx-auto qr-printable">
+                    <div className="qr-printable">
                       <div className="print-only text-center mb-4">
                         <div className="text-3xl mb-3 font-semibold">{game.title}</div>
                         <div className="text-lg break-all">{fullUrl}</div>
                       </div>
-                      <img src={qrDataUrl} alt="QR code" className="mx-auto" />
+                      <img src={qrDataUrl} alt="QR code" />
                     </div>
                   ) : (
                     <div className="h-40 w-40 mx-auto bg-gray-100 flex items-center justify-center qr-printable">QR</div>
                   )}
                   <div className="mt-2 text-sm break-all">{qrDataUrl ? undefined : `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/g/${game.slug}`}</div>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <button onClick={() => window.print()} className="btn-primary">Print</button>
+                    <button onClick={() => window.print()} className="btn-primary">Print QR Code</button>
                     <button onClick={handleCopyUrl} className="btn-primary">Copy URL</button>
+                    <a className="btn-primary" href={`/g/${game.slug}`}>Player link</a>
+                    <a className="btn-primary" href={`/g/${game.slug}/leaderboard`}>Leaderboard</a>
                     {qrDataUrl ? (
                       <button
                         onClick={() => {
@@ -464,7 +458,7 @@ export default function AdminGameClient() {
                         }}
                         className="btn-primary"
                       >
-                        Download
+                        Download QR Code
                       </button>
                     ) : (
                       <button disabled className="btn-primary opacity-50 cursor-not-allowed">Download</button>
