@@ -420,6 +420,12 @@ export default function AdminGameClient() {
                     </form>
                   )}
                 </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <button onClick={handleCopyUrl} className="btn-primary" aria-label="Copy Game URL">Copy URL</button>
+                    <a className="btn-primary" href={`/g/${game.slug}`} aria-label="Go to Game">Game</a>
+                    <a className="btn-primary" href={`/g/${game.slug}/leaderboard`} aria-label="Go to Leaderboard">Leaderboard</a>
+                    {copiedUrl && <span className="ml-2 text-sm text-green-600">Copied!</span>}
+                  </div>
               </div>
 
               <div className="text-center mt-6">
@@ -439,9 +445,6 @@ export default function AdminGameClient() {
                   <div className="mt-2 text-sm break-all">{qrDataUrl ? undefined : `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/g/${game.slug}`}</div>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <button onClick={() => window.print()} className="btn-primary">Print QR Code</button>
-                    <button onClick={handleCopyUrl} className="btn-primary">Copy URL</button>
-                    <a className="btn-primary" href={`/g/${game.slug}`}>Player link</a>
-                    <a className="btn-primary" href={`/g/${game.slug}/leaderboard`}>Leaderboard</a>
                     {qrDataUrl ? (
                       <button
                         onClick={() => {
@@ -463,7 +466,7 @@ export default function AdminGameClient() {
                     ) : (
                       <button disabled className="btn-primary opacity-50 cursor-not-allowed">Download</button>
                     )}
-                    {copiedUrl && <span className="ml-2 text-sm text-green-600">Copied!</span>}
+                    
                   </div>
                 </div>
               </div>
