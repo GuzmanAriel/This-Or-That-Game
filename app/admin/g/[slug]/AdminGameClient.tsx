@@ -388,7 +388,7 @@ export default function AdminGameClient() {
                         <div className="mt-1 text-gray-900">{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</div>
                       </div>
                       <div className="flex items-center space-x-4">
-                        <button ref={editButtonRef} aria-expanded={editingLabels} aria-controls="labelsForm" className="text-lg text-indigo-600 hover:underline" onClick={() => setEditingLabels(true)}>Edit labels</button>
+                        <button ref={editButtonRef} aria-expanded={editingLabels} aria-controls="labelsForm" className="text-lg text-indigo-600 hover:underline" aria-label="Edit Question Option Labels" onClick={() => setEditingLabels(true)}>Edit labels</button>
                         <button
                           className="text-lg text-red-600"
                           onClick={handleToggleOpen}
@@ -404,7 +404,7 @@ export default function AdminGameClient() {
                         <label htmlFor="optionA" className="block text-md font-semibold">Edit Option A label</label>
                         <div className="flex items-center space-x-2">
                           <input id="optionA" name="optionA" ref={optionARef} value={optionA} onChange={(e) => setOptionA(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" aria-describedby="optionAHelp" />
-                          <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} aria-label="Choose emoji for Option A" />
+                          <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} ariaLabel="Choose emoji for Option A" />
                         </div>
                         <p id="optionAHelp" className="text-xs text-gray-500">Optional emoji appears before the label.</p>
                       </div>
@@ -412,7 +412,7 @@ export default function AdminGameClient() {
                         <label htmlFor="optionB" className="block text-md font-semibold">Edit Option B label</label>
                         <div className="flex items-center space-x-2">
                           <input id="optionB" name="optionB" ref={optionBRef} value={optionB} onChange={(e) => setOptionB(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" aria-describedby="optionBHelp" />
-                          <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} aria-label="Choose emoji for Option B" />
+                          <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} ariaLabel="Choose emoji for Option B" />
                         </div>
                         <p id="optionBHelp" className="text-xs text-gray-500">Optional emoji appears before the label.</p>
                       </div>

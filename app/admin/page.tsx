@@ -345,7 +345,7 @@ export default function AdminPage() {
                   <label htmlFor="optionA" className="block text-sm font-medium text-gray-700">Option A label</label>
                   <div className="flex items-center space-x-2">
                     <input id="optionA" value={optionALabel} onChange={(e) => setOptionALabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                    <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} />
+                    <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} ariaLabel="Choose emoji for Option A" />
                   </div>
                   <p className="mt-1 text-xs text-gray-500">Label shown as one of the two choices players pick (e.g. "Option A"). Optional emoji appears before the label.</p>
                 </div>
@@ -354,7 +354,7 @@ export default function AdminPage() {
                   <label htmlFor="optionB" className="block text-sm font-medium text-gray-700">Option B label</label>
                   <div className="flex items-center space-x-2">
                     <input id="optionB" value={optionBLabel} onChange={(e) => setOptionBLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                    <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} />
+                    <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} ariaLabel="Choose emoji for Option B" />
                   </div>
                   <p className="mt-1 text-xs text-gray-500">Label shown as the second choice players pick (e.g. "Option B"). Optional emoji appears before the label.</p>
                 </div>
