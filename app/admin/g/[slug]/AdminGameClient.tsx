@@ -499,7 +499,7 @@ export default function AdminGameClient() {
               const e = editing[q.id]
               return (
                 <QuestionCard key={q.id} id={q.id} footer={e?.error} actions={!e ? (
-                  <button className="text-sm btn-primary hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'A' ? 'A' : 'B', saving: false } }))}>Edit</button>
+                  <button aria-label={`Edit Question ${q.order_index + 1}`} className="text-sm btn-primary hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'A' ? 'A' : 'B', saving: false } }))}>Edit</button>
                 ) : (
                   <div className="space-x-2">
                     <button className="px-3 py-1 btn-primary" onClick={async () => {
@@ -515,7 +515,7 @@ export default function AdminGameClient() {
                         setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: false, error: err?.message ?? 'Save failed' } }))
                       }
                     }}>Save</button>
-                    <button className="btn-cancel" onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
+                    <button className="btn-cancel" aria-label={`Cancel Editing Question ${q.order_index + 1}`} onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
                   </div>
                 )}>
                   <div>
