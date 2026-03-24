@@ -39,6 +39,7 @@ export default function AdminGameClient() {
   const optionARef = useRef<HTMLInputElement | null>(null)
   const optionBRef = useRef<HTMLInputElement | null>(null)
   const editButtonRef = useRef<HTMLButtonElement | null>(null)
+  const editInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
 
   // new question form
@@ -499,11 +500,13 @@ export default function AdminGameClient() {
               const e = editing[q.id]
               return (
                 <QuestionCard key={q.id} id={q.id} footer={e?.error} actions={!e ? (
-                  <button aria-label={`Edit Question ${q.order_index + 1}`} className="text-sm btn-primary hover:underline" onClick={() => setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'A' ? 'A' : 'B', saving: false } }))}>Edit</button>
+                  <button aria-label={`Edit Question ${q.order_index + 1}`} className="text-sm btn-primary hover:underline" onClick={() => {
+                    setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'A' ? 'A' : 'B', saving: false } }))
+                    setTimeout(() => editInputRefs.current[q.id]?.focus(), 0)
+                  }}>Edit</button>
                 ) : (
                   <div className="space-x-2">
-                    <button className="px-3 py-1 btn-primary" onClick={async () => {
-                      // save edit
+                    <button aria-label={`Save edits for Question ${q.order_index + 1}`} className="px-3 py-1 btn-primary" onClick={async () => {
                       setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: true } }))
                       try {
                         const { error } = await supabase.from('questions').update({ prompt: e.prompt.trim(), correct_answer: e.correct }).eq('id', q.id)
@@ -515,7 +518,7 @@ export default function AdminGameClient() {
                         setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: false, error: err?.message ?? 'Save failed' } }))
                       }
                     }}>Save</button>
-                    <button className="btn-cancel" aria-label={`Cancel Editing Question ${q.order_index + 1}`} onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
+                    <button aria-label={`Cancel editing for Question ${q.order_index + 1}`} className="btn-cancel" onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
                   </div>
                 )}>
                   <div>
@@ -524,29 +527,43 @@ export default function AdminGameClient() {
                       <div className="mt-1 font-medium text-lg">{q.prompt}</div>
                     ) : (
                       <div className="mt-1">
-                        <input value={e.prompt} onChange={(ev) => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], prompt: ev.target.value } }))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                        <label htmlFor={`prompt-${q.id}`} className="sr-only">Question {q.order_index + 1} prompt</label>
+                        <input id={`prompt-${q.id}`} ref={(el) => { editInputRefs.current[q.id] = el }} value={e.prompt} onChange={(ev) => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], prompt: ev.target.value } }))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
                       </div>
                     )}
                     {/* Show friendly label for the stored correct answer (maps stored value to option labels) */}
                     {!e ? (
                       <div className="mt-1 font-medium text-lg">Answer: {q.correct_answer === 'A' ? (optionAEmoji ? optionAEmoji + ' ' : '') + (optionA || 'Option A') : q.correct_answer === 'B' ? (optionBEmoji ? optionBEmoji + ' ' : '') + (optionB || 'Option B') : q.correct_answer}</div>
                     ) : (
-                      <div className="mt-2 flex items-center space-x-4">
-                        <button
-                          type="button"
-                          onClick={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'A' } }))}
-                          className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${e.correct === 'A' ? 'selected' : ''}`}
-                        >
-                          <span>{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'B' } }))}
-                          className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${e.correct === 'B' ? 'selected' : ''}`}
-                        >
-                          <span>{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</span>
-                        </button>
-                      </div>
+                      <fieldset className="mt-2">
+                        <legend className="sr-only">Correct answer for question {q.order_index + 1}</legend>
+                        <div className="mt-2 flex items-center space-x-4" role="radiogroup" aria-labelledby={`question-${q.id}` }>
+                          <label className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border option-button ${e.correct === 'A' ? 'selected' : ''}`}>
+                            <input
+                              className="sr-only"
+                              type="radio"
+                              id={`correctA-${q.id}`}
+                              name={`correct-${q.id}`}
+                              value="A"
+                              checked={e.correct === 'A'}
+                              onChange={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'A' } }))}
+                            />
+                            <span>{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</span>
+                          </label>
+                          <label className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border option-button ${e.correct === 'B' ? 'selected' : ''}`}>
+                            <input
+                              className="sr-only"
+                              type="radio"
+                              id={`correctB-${q.id}`}
+                              name={`correct-${q.id}`}
+                              value="B"
+                              checked={e.correct === 'B'}
+                              onChange={() => setEditing(prev => ({ ...prev, [q.id]: { ...prev[q.id], correct: 'B' } }))}
+                            />
+                            <span>{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</span>
+                          </label>
+                        </div>
+                      </fieldset>
                     )}
                   </div>
                 </QuestionCard>
