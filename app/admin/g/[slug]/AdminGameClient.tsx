@@ -404,7 +404,7 @@ export default function AdminGameClient() {
                         <label htmlFor="optionA" className="block text-md font-semibold">Edit Option A label</label>
                         <div className="flex items-center space-x-2">
                           <input id="optionA" name="optionA" ref={optionARef} value={optionA} onChange={(e) => setOptionA(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" aria-describedby="optionAHelp" />
-                          <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} ariaLabel="Choose emoji for Option A" />
+                          <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} ariaLabel="Choose emoji for Option A" ariaDescribedBy="optionAHelp" />
                         </div>
                         <p id="optionAHelp" className="text-xs text-gray-500">Optional emoji appears before the label.</p>
                       </div>
@@ -412,13 +412,13 @@ export default function AdminGameClient() {
                         <label htmlFor="optionB" className="block text-md font-semibold">Edit Option B label</label>
                         <div className="flex items-center space-x-2">
                           <input id="optionB" name="optionB" ref={optionBRef} value={optionB} onChange={(e) => setOptionB(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" aria-describedby="optionBHelp" />
-                          <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} ariaLabel="Choose emoji for Option B" />
+                          <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} ariaLabel="Choose emoji for Option B" ariaDescribedBy="optionBHelp" />
                         </div>
                         <p id="optionBHelp" className="text-xs text-gray-500">Optional emoji appears before the label.</p>
                       </div>
                       {/* Tiebreaker is edited inline under Questions */}
                       <div className="flex items-center space-x-2">
-                        <button type="submit" disabled={savingLabels} className="btn-primary" aria-disabled={savingLabels}>
+                        <button type="submit" disabled={savingLabels} className="btn-primary" aria-disabled={savingLabels} aria-label="Save Option Labels">
                           {savingLabels ? 'Saving…' : 'Save'}
                         </button>
                         <button type="button" className="btn-cancel" onClick={() => {

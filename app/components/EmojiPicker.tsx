@@ -8,9 +8,10 @@ type Props = {
   value: string | null
   onChange: (v: string | null) => void
   ariaLabel?: string
+  ariaDescribedBy?: string
 }
 
-export default function EmojiPicker({ value, onChange, ariaLabel }: Props) {
+export default function EmojiPicker({ value, onChange, ariaLabel, ariaDescribedBy }: Props) {
   const [open, setOpen] = useState(false)
   const uid = useId()
   const popoverId = `emoji-picker-${uid}`
@@ -25,6 +26,7 @@ export default function EmojiPicker({ value, onChange, ariaLabel }: Props) {
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={popoverId}
+        aria-describedby={ariaDescribedBy}
       >
         {value ?? '🙂'}
       </button>
