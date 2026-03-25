@@ -40,6 +40,8 @@ export default function AdminGameClient() {
   const optionBRef = useRef<HTMLInputElement | null>(null)
   const editButtonRef = useRef<HTMLButtonElement | null>(null)
   const editInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+  const editButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  const [focusReturnId, setFocusReturnId] = useState<string | null>(null)
 
 
   // new question form
@@ -144,6 +146,28 @@ export default function AdminGameClient() {
       editButtonRef.current?.focus()
     }
   }, [editingLabels])
+
+  // When entering edit mode for a question we attempt to focus its prompt input.
+  // Also provide a reliable focus-return mechanism: when `focusReturnId` is set
+  // we'll wait for the next animation frame and focus the corresponding Edit button.
+  useEffect(() => {
+    // focus newest edit input (best-effort)
+    const ids = Object.keys(editing)
+    if (ids.length > 0) {
+      const last = ids[ids.length - 1]
+      requestAnimationFrame(() => {
+        try { editInputRefs.current[last]?.focus() } catch (e) {}
+      })
+    }
+  }, [editing])
+
+  useEffect(() => {
+    if (!focusReturnId) return
+    requestAnimationFrame(() => {
+      try { editButtonRefs.current[focusReturnId ?? '']?.focus() } catch (e) {}
+      setFocusReturnId(null)
+    })
+  }, [focusReturnId])
 
   useEffect(() => {
     // generate QR data URL for the public play link using the local `qrcode` package
@@ -500,7 +524,7 @@ export default function AdminGameClient() {
               const e = editing[q.id]
               return (
                 <QuestionCard key={q.id} id={q.id} footer={e?.error} actions={!e ? (
-                  <button aria-label={`Edit Question ${q.order_index + 1}`} className="text-sm btn-primary hover:underline" onClick={() => {
+                  <button ref={(el) => { editButtonRefs.current[q.id] = el }} aria-label={`Edit Question ${q.order_index + 1}`} className="text-sm btn-primary hover:underline" onClick={() => {
                     setEditing(prev => ({ ...prev, [q.id]: { prompt: q.prompt, correct: q.correct_answer === 'A' ? 'A' : 'B', saving: false } }))
                     setTimeout(() => editInputRefs.current[q.id]?.focus(), 0)
                   }}>Edit</button>
@@ -514,11 +538,15 @@ export default function AdminGameClient() {
                         const qResp = await supabase.from('questions').select('*').eq('game_id', game!.id).order('order_index', { ascending: true })
                         setQuestions(qResp.data ?? [])
                         setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })
+                        setFocusReturnId(String(q.id))
                       } catch (err: any) {
                         setEditing(prev => ({ ...prev, [q.id]: { ...(prev[q.id]), saving: false, error: err?.message ?? 'Save failed' } }))
                       }
                     }}>Save</button>
-                    <button aria-label={`Cancel editing for Question ${q.order_index + 1}`} className="btn-cancel" onClick={() => setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })}>Cancel</button>
+                    <button aria-label={`Cancel editing for Question ${q.order_index + 1}`} className="btn-cancel" onClick={() => {
+                      setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })
+                      setFocusReturnId(String(q.id))
+                    }}>Cancel</button>
                   </div>
                 )}>
                   <div>
