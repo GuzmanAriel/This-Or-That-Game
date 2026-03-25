@@ -42,6 +42,7 @@ export default function AdminGameClient() {
   const editInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const editButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [focusReturnId, setFocusReturnId] = useState<string | null>(null)
+  const tiebreakerPromptRef = useRef<HTMLInputElement | null>(null)
 
 
   // new question form
@@ -168,6 +169,13 @@ export default function AdminGameClient() {
       setFocusReturnId(null)
     })
   }, [focusReturnId])
+
+  useEffect(() => {
+    if (!tiebreakerEditing) return
+    requestAnimationFrame(() => {
+      try { tiebreakerPromptRef.current?.focus() } catch (e) {}
+    })
+  }, [tiebreakerEditing])
 
   useEffect(() => {
     // generate QR data URL for the public play link using the local `qrcode` package
@@ -332,6 +340,7 @@ export default function AdminGameClient() {
       if (error) throw error
       if (data) setGame(data as Game)
       setTiebreakerEditing(false)
+      setFocusReturnId('tiebreaker')
     } catch (err: any) {
       setError(err?.message ?? 'Failed to save tiebreaker')
     } finally {
@@ -600,7 +609,7 @@ export default function AdminGameClient() {
             {game.tiebreaker_enabled !== undefined && (
               <QuestionCard key="tiebreaker" id="tiebreaker" actions={!tiebreakerEditing ? (
                 <div className="space-x-2">
-                  <button className="btn-primary" onClick={() => setTiebreakerEditing(true)}>Edit</button>
+                  <button ref={(el) => { editButtonRefs.current['tiebreaker'] = el }} aria-label="Edit Tiebreaker" className="btn-primary" onClick={() => setTiebreakerEditing(true)}>Edit</button>
                 </div>
               ) : null}>
                 {!tiebreakerEditing ? (
@@ -624,7 +633,7 @@ export default function AdminGameClient() {
                       </div>
                       <div>
                         <label className="block text-md font-semibold">Tiebreaker question</label>
-                        <input value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                        <input ref={tiebreakerPromptRef} value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
                       </div>
                       <div>
                         <label className="block text-md font-semibold">Tiebreaker answer (number)</label>
@@ -638,6 +647,7 @@ export default function AdminGameClient() {
                           setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
                           setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
                           setTiebreakerEditing(false)
+                          setFocusReturnId('tiebreaker')
                         }}>Cancel</button>
                       </div>
                     </div>
@@ -649,7 +659,7 @@ export default function AdminGameClient() {
 
           <form onSubmit={handleAddQuestion} className="mt-6 space-y-3">
             <div>
-              <label htmlFor="prompt" className="block text-sm font-medium text-gray-700">Prompt</label>
+              <label htmlFor="prompt" className="block text-sm font-medium text-gray-700">Question</label>
               <input id="prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
             </div>
 
