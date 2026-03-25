@@ -50,6 +50,7 @@ export default function AdminGameClient() {
   const [correct, setCorrect] = useState<'A' | 'B'>('A')
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
   // editing existing questions
   const [editing, setEditing] = useState<Record<string, { prompt: string; correct: 'A' | 'B'; saving: boolean; error?: string }>>({})
 
@@ -262,7 +263,16 @@ export default function AdminGameClient() {
       if (qErr) {
         setFormError('Question added but failed to reload list')
       } else {
-        setQuestions(qData ?? [])
+        const list = qData ?? []
+        setQuestions(list)
+        // try to identify the newly-added question to return focus to it
+        const trimmed = prompt.trim()
+        const added = list.find(q => q.prompt === trimmed) ?? (list.length ? list[list.length - 1] : null)
+        if (added?.id) {
+          setFocusReturnId(String(added.id))
+        }
+        setStatusMessage('Question added')
+        setTimeout(() => setStatusMessage(null), 3000)
         setPrompt('')
         setCorrect('A')
       }
@@ -657,36 +667,34 @@ export default function AdminGameClient() {
             )}
           </div>
 
-          <form onSubmit={handleAddQuestion} className="mt-6 space-y-3">
+          <form onSubmit={handleAddQuestion} className="mt-6 space-y-3" aria-describedby={formError ? 'addQuestionError' : undefined}>
             <div>
               <label htmlFor="prompt" className="block text-sm font-medium text-gray-700">Question</label>
               <input id="prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
             </div>
 
             <div>
-              <div className="text-sm font-medium text-gray-700">Correct answer</div>
-              <div className="mt-1 flex items-center space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setCorrect('A')}
-                  className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${correct === 'A' ? 'selected' : ''}`}
-                >
-                  <span>{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCorrect('B')}
-                  className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-1 option-button ${correct === 'B' ? 'selected' : ''}`}
-                >
-                  <span>{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</span>
-                </button>
-              </div>
+              <fieldset>
+                <legend className="text-sm font-medium text-gray-700">Correct answer</legend>
+                <div className="mt-1 flex items-center space-x-4" role="radiogroup" aria-labelledby="addQuestionCorrect">
+                  <label className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border option-button ${correct === 'A' ? 'selected' : ''}`}>
+                    <input className="sr-only" type="radio" name="correct" value="A" checked={correct === 'A'} onChange={() => setCorrect('A')} />
+                    <span>{optionAEmoji ? optionAEmoji + ' ' : ''}{optionA || 'Option A'}</span>
+                  </label>
+                  <label className={`inline-flex items-center space-x-2 px-3 py-2 rounded-md border option-button ${correct === 'B' ? 'selected' : ''}`}>
+                    <input className="sr-only" type="radio" name="correct" value="B" checked={correct === 'B'} onChange={() => setCorrect('B')} />
+                    <span>{optionBEmoji ? optionBEmoji + ' ' : ''}{optionB || 'Option B'}</span>
+                  </label>
+                </div>
+              </fieldset>
             </div>
 
-            {formError && <div className="text-sm text-red-600">{formError}</div>}
+            {formError && <div id="addQuestionError" className="text-sm text-red-600">{formError}</div>}
+
+            <div id="adminStatus" role="status" aria-live="polite" className="sr-only">{statusMessage}</div>
 
             <div>
-              <button type="submit" disabled={submitting} className="btn-primary mt-4">
+              <button type="submit" disabled={submitting} aria-disabled={submitting} className="btn-primary mt-4">
                 {submitting ? 'Adding…' : 'Add question'}
               </button>
             </div>
