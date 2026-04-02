@@ -302,7 +302,7 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                    Title
+                    Game Title
                   </label>
                   <input
                     id="title"
@@ -315,11 +315,12 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Slug (auto)</label>
+                  <label htmlFor="slug" className="block text-sm font-medium text-gray-700">Slug (auto)</label>
                   <input
                     id="slug"
                     value={slug}
                     readOnly
+                    disabled
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-100"
                   />
                   <p className="mt-1 text-xs text-gray-500">Automatically generated from the title; spaces become hyphens.</p>
@@ -333,30 +334,31 @@ export default function AdminPage() {
                     id="theme"
                     value={theme}
                     onChange={(e) => setTheme(e.target.value as 'default' | 'baby-autumn')}
+                    aria-describedby="theme-desc"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
                   >
                     <option value="default">Default</option>
                     <option value="baby-autumn">Baby Autumn</option>
                   </select>
-                  <p className="mt-1 text-xs text-gray-500">Choose a visual theme for this game. "Baby Autumn" uses a warm display font.</p>
+                  <p id="theme-desc" className="mt-1 text-xs text-gray-500">Choose a visual theme for this game. "Baby Autumn" uses a warm display font.</p>
                 </div>
 
                 <div>
                   <label htmlFor="optionA" className="block text-sm font-medium text-gray-700">Option A label</label>
                   <div className="flex items-center space-x-2">
                     <input id="optionA" value={optionALabel} onChange={(e) => setOptionALabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                    <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} ariaLabel="Choose emoji for Option A" />
+                    <EmojiPicker value={optionAEmoji} onChange={setOptionAEmoji} ariaLabel="Choose emoji for Option A" ariaDescribedBy="optionA-desc" />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">Label shown as one of the two choices players pick (e.g. "Option A"). Optional emoji appears before the label.</p>
+                  <p id="optionA-desc" className="mt-1 text-xs text-gray-500">Label shown as one of the two choices players pick (e.g. "Option A"). Optional emoji appears before the label.</p>
                 </div>
 
                 <div>
                   <label htmlFor="optionB" className="block text-sm font-medium text-gray-700">Option B label</label>
                   <div className="flex items-center space-x-2">
                     <input id="optionB" value={optionBLabel} onChange={(e) => setOptionBLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                    <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} ariaLabel="Choose emoji for Option B" />
+                    <EmojiPicker value={optionBEmoji} onChange={setOptionBEmoji} ariaLabel="Choose emoji for Option B" ariaDescribedBy="optionB-desc" />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">Label shown as the second choice players pick (e.g. "Option B"). Optional emoji appears before the label.</p>
+                  <p id="optionB-desc" className="mt-1 text-xs text-gray-500">Label shown as the second choice players pick (e.g. "Option B"). Optional emoji appears before the label.</p>
                 </div>
 
                 <div className="flex items-center space-x-4">
@@ -365,22 +367,24 @@ export default function AdminPage() {
                       type="checkbox"
                       checked={isOpen}
                       onChange={(e) => setIsOpen(e.target.checked)}
+                      aria-describedby="open-desc"
                       className="rounded p-2"
                     />
                     <span className="text-sm">Open</span>
                   </label>
-                  <p className="mt-1 text-xs text-gray-500">When checked, players can submit answers to this game. Uncheck to close submissions.</p>
+                  <p id="open-desc" className="mt-1 text-xs text-gray-500">When checked, players can submit answers to this game. Uncheck to close submissions.</p>
 
                   <label className="flex items-center space-x-2">
                     <input
                       type="checkbox"
                       checked={tiebreakerEnabled}
                       onChange={(e) => setTiebreakerEnabled(e.target.checked)}
+                      aria-describedby="tiebreakerEnabled-desc"
                       className="rounded p-2"
                     />
-                    <span className="text-sm">Tiebreaker enabled</span>
+                    <span className="text-sm">Add Tiebreaker Question</span>
                   </label>
-                  <p className="mt-1 text-xs text-gray-500">Enable an optional numeric tiebreaker question to rank guesses when players tie.</p>
+                  <p id="tiebreakerEnabled-desc" className="mt-1 text-xs text-gray-500">Enable an optional numeric tiebreaker question to rank guesses when players tie.</p>
                 </div>
 
                 {tiebreakerEnabled && (
@@ -394,9 +398,10 @@ export default function AdminPage() {
                         type="text"
                         value={tiebreakerPrompt}
                         onChange={(e) => setTiebreakerPrompt(e.target.value)}
+                        aria-describedby="tiebreakerPrompt-desc"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
                       />
-                      <p className="mt-1 text-xs text-gray-500">Short prompt shown to players (e.g. "How many candies are in the jar?").</p>
+                      <p id="tiebreakerPrompt-desc" className="mt-1 text-xs text-gray-500">Short prompt shown to players (e.g. "How many candies are in the jar?").</p>
                     </div>
                     <div>
                       <label htmlFor="tiebreaker" className="block text-sm font-medium text-gray-700">
