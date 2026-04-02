@@ -39,6 +39,7 @@ export default function AdminPage() {
     setSlug(s)
   }, [title])
   const [formError, setFormError] = useState<string | null>(null)
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false)
   const [success, setSuccess] = useState<{ slug: string } | null>(null)
   // list of games created by this admin
   const [games, setGames] = useState<Game[]>([])
@@ -113,6 +114,7 @@ export default function AdminPage() {
 
   async function handleCreateGame(e: React.FormEvent) {
     e.preventDefault()
+    setAttemptedSubmit(true)
     setFormError(null)
     setSuccess(null)
 
@@ -200,6 +202,18 @@ export default function AdminPage() {
       setFormError(err?.message ?? 'Request failed')
     }
   }
+
+  function handleFormKeyDown(e: React.KeyboardEvent<HTMLFormElement>) {
+    if (e.key !== 'Enter') return
+    const target = e.target as HTMLElement
+    if (target && target.tagName === 'INPUT') {
+      const input = target as HTMLInputElement
+      if (input.type === 'checkbox' || input.type === 'radio') {
+        e.preventDefault()
+      }
+    }
+  }
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -419,7 +433,7 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                {formError && <p className="text-sm text-red-600">{formError}</p>}
+                {attemptedSubmit && formError && <p className="text-sm text-red-600">{formError}</p>}
                 {success && (
                   <div className="rounded-md border p-3 bg-green-50 text-sm">
                     Game created: <strong>{success.slug}</strong>
