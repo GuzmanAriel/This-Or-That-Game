@@ -203,31 +203,7 @@ export default function AdminPage() {
     }
   }
 
-  function handleFormKeyDown(e: React.KeyboardEvent<HTMLFormElement>) {
-    if (e.key !== 'Enter') return
-    const target = e.target as HTMLElement
-    if (target && target.tagName === 'INPUT') {
-      const input = target as HTMLInputElement
-      if (input.type === 'checkbox' || input.type === 'radio') {
-        e.preventDefault()
-      }
-    }
-  }
-
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage(null);
-    try {
-      const data = await loginWithEmail(email, password);
-      setMessage('Login successful');
-    } catch (err: any) {
-      setMessage(err?.message ?? String(err));
-    } finally {
-      setLoading(false);
-    }
-  }
+  // Removed unused handlers: `handleFormKeyDown` and `handleSubmit`.
 
   if (checking) {
     return (
