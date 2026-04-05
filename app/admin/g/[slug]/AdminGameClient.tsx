@@ -35,6 +35,7 @@ export default function AdminGameClient() {
   const [tiebreakerPromptInvalid, setTiebreakerPromptInvalid] = useState(false)
   const [tiebreakerAnswerInvalid, setTiebreakerAnswerInvalid] = useState(false)
   const [tiebreakerRemoving, setTiebreakerRemoving] = useState(false)
+  const [showRemoveModal, setShowRemoveModal] = useState(false)
   const [editingLabels, setEditingLabels] = useState(false)
   const [tiebreakerEditing, setTiebreakerEditing] = useState(false)
 
@@ -395,7 +396,6 @@ export default function AdminGameClient() {
 
     async function handleRemoveTiebreaker() {
       if (!game) return
-      if (!confirm('Remove tiebreaker? This cannot be undone.')) return
       setTiebreakerRemoving(true)
       setTiebreakerError(null)
       try {
@@ -593,6 +593,23 @@ export default function AdminGameClient() {
                   </div>
                 </div>
               </div>
+              {showRemoveModal && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+                  <div className="bg-white rounded max-w-md w-full p-6">
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-lg font-medium">Remove tiebreaker</h3>
+                      <button className="text-sm text-gray-600" onClick={() => setShowRemoveModal(false)}>Close</button>
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-700">Are you sure you want to remove the tiebreaker? This will clear the question and answer.</p>
+                      <div className="mt-4 flex justify-end space-x-2">
+                        <button className="btn-cancel" onClick={() => setShowRemoveModal(false)}>Cancel</button>
+                        <button className="btn-primary" onClick={async () => { setShowRemoveModal(false); await handleRemoveTiebreaker() }} disabled={tiebreakerRemoving}>{tiebreakerRemoving ? 'Removing…' : 'Remove'}</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -686,7 +703,7 @@ export default function AdminGameClient() {
                 ) : (
                   <>
                     <button ref={(el) => { editButtonRefs.current['tiebreaker'] = el }} aria-label="Edit Tiebreaker" className="btn-primary" onClick={() => setTiebreakerEditing(true)}>Edit</button>
-                    <button aria-label="Remove Tiebreaker" className="btn-cancel" onClick={handleRemoveTiebreaker} disabled={tiebreakerRemoving}>{tiebreakerRemoving ? 'Removing…' : 'Remove'}</button>
+                    <button aria-label="Remove Tiebreaker" className="btn-cancel" onClick={() => setShowRemoveModal(true)} disabled={tiebreakerRemoving}>{tiebreakerRemoving ? 'Removing…' : 'Remove'}</button>
                   </>
                 )}
               </div>
