@@ -394,7 +394,7 @@ export default function GameClient({ params }: Props) {
         <div className="mt-3 text-2xl">
           <p>Answer {game?.option_a_emoji && <span aria-hidden="true">{game.option_a_emoji} </span>}{game?.option_a_label ?? 'Option A'} or {game?.option_b_emoji && <span aria-hidden="true">{game.option_b_emoji} </span>}{game?.option_b_label ?? 'Option B'} for each question.</p>
           <p className="mt-3">Each correct answer earns one point. The player with the most correct answers wins the game.</p>
-          {game?.tiebreaker_enabled && game?.tiebreaker_prompt && (
+          {game?.tiebreaker_prompt && (
             <div className="mt-3">
               <p className="font-medium">Tiebreaker: {game.tiebreaker_prompt}</p>
               <p className="mt-1">Enter a numeric guess. When players are tied, the player whose guess is closest to the correct answer wins the tie (exact answer is not shown).</p>
@@ -565,7 +565,7 @@ export default function GameClient({ params }: Props) {
                     </div>
                   )
                 })}
-            {game.tiebreaker_enabled && game.tiebreaker_prompt && (
+            {game.tiebreaker_prompt && (
               <QuestionCard key="tiebreaker" id="tiebreaker" footer={tiebreakerState.error}>
                   <h4 id={`tiebreaker-${game.id}-label`} className="text-lg font-bold">Tiebreaker</h4>
                   <div id={`tiebreaker-${game.id}-prompt`} className="mt-1 font-medium text-lg">{game.tiebreaker_prompt}</div>
