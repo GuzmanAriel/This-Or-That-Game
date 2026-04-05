@@ -204,6 +204,8 @@ export default function GameClient({ params }: Props) {
   if (loading) return <div className="p-8">Loading…</div>
   if (!game) return <div className="p-8">Game not found</div>
 
+  const hasTiebreaker = Boolean((game as any)?.tiebreaker_prompt) || (((game as any)?.tiebreaker_answer !== undefined) && (game as any)?.tiebreaker_answer !== null && String((game as any)?.tiebreaker_answer).trim() !== '')
+
   // If game is closed, show friendly closed message and leaderboard link only
   if (!game.is_open) {
     return (
@@ -315,8 +317,8 @@ export default function GameClient({ params }: Props) {
       return
     }
 
-    // if tiebreaker enabled, ensure it's numeric (if not yet saved)
-    if (game.tiebreaker_enabled && game.tiebreaker_prompt && !tiebreakerState.saved) {
+    // if a tiebreaker prompt exists, ensure it's numeric (if not yet saved)
+    if (game.tiebreaker_prompt && !tiebreakerState.saved) {
       const val = (tiebreakerState.value || '').toString().trim()
       if (!val) return alert('Please enter your tiebreaker answer')
       if (!/^-?\d+(?:\.\d+)?$/.test(val)) return alert('Tiebreaker answer must be a number')
@@ -332,7 +334,7 @@ export default function GameClient({ params }: Props) {
         if (st.saved) continue
         payloads.push({ game_id: game.id, player_id: playerId, question_id: q.id, answer_text: st.value })
       }
-      if (game.tiebreaker_enabled && game.tiebreaker_prompt && !tiebreakerState.saved) {
+      if (game.tiebreaker_prompt && !tiebreakerState.saved) {
         payloads.push({ game_id: game.id, player_id: playerId, question_id: null, answer_text: (tiebreakerState.value || '').toString().trim() })
       }
 
@@ -356,7 +358,7 @@ export default function GameClient({ params }: Props) {
         if (newAnswersState[q.id]) newAnswersState[q.id] = { ...newAnswersState[q.id], saved: true, loading: false }
       }
       setAnswersState(newAnswersState)
-      if (game.tiebreaker_enabled && game.tiebreaker_prompt) setTiebreakerState(prev => ({ ...prev, saved: true, loading: false }))
+      if (game.tiebreaker_prompt) setTiebreakerState(prev => ({ ...prev, saved: true, loading: false }))
       try { localStorage.removeItem(`answersDraft:${game.id}:${playerId}`) } catch (e) {}
     } catch (err: any) {
       alert(err?.message ?? 'Submit failed')

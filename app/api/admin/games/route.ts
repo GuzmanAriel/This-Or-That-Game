@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    const { title, slug, tiebreaker_enabled, tiebreaker_answer, is_open, option_a_label, option_b_label, option_a_emoji, option_b_emoji, tiebreaker_prompt, theme } = body || {}
+    const { title, slug, tiebreaker_answer, is_open, option_a_label, option_b_label, option_a_emoji, option_b_emoji, tiebreaker_prompt, theme } = body || {}
 
   if (!title || typeof title !== 'string' || !slug || typeof slug !== 'string') {
     return NextResponse.json({ error: 'Missing required fields: title, slug' }, { status: 400 })
@@ -50,26 +50,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing required fields: option_a_label, option_b_label' }, { status: 400 })
   }
 
-  // if tiebreaker is enabled, require tiebreaker_answer
-  if (tiebreaker_enabled && (tiebreaker_answer === undefined || tiebreaker_answer === null || String(tiebreaker_answer).trim() === '')) {
-    return NextResponse.json({ error: 'Tiebreaker answer is required when tiebreaker_enabled is true' }, { status: 400 })
-  }
+  // Determine whether tiebreaker data was provided
+  const hasTiebreaker = (tiebreaker_prompt && String(tiebreaker_prompt).trim() !== '') ||
+    (tiebreaker_answer !== undefined && tiebreaker_answer !== null && String(tiebreaker_answer).trim() !== '')
 
-  // ensure tiebreaker answer is numeric when provided
-  if (tiebreaker_enabled) {
+  // If answer provided, ensure it's numeric
+  if (tiebreaker_answer !== undefined && tiebreaker_answer !== null && String(tiebreaker_answer).trim() !== '') {
     const n = Number(tiebreaker_answer)
-    if (!Number.isFinite(n) || String(tiebreaker_answer).trim() === '') {
+    if (!Number.isFinite(n)) {
       return NextResponse.json({ error: 'Tiebreaker answer must be a number' }, { status: 400 })
     }
   }
 
-  // require tiebreaker prompt when enabled
-  if (tiebreaker_enabled && (!tiebreaker_prompt || typeof tiebreaker_prompt !== 'string' || !tiebreaker_prompt.trim())) {
-    return NextResponse.json({ error: 'Tiebreaker prompt is required when tiebreaker_enabled is true' }, { status: 400 })
+  // If prompt provided, ensure it's a non-empty string
+  if (tiebreaker_prompt !== undefined && tiebreaker_prompt !== null && typeof tiebreaker_prompt !== 'string') {
+    return NextResponse.json({ error: 'Invalid tiebreaker_prompt' }, { status: 400 })
   }
 
   // Normalize flags
-  const tiebreakerEnabled = Boolean(tiebreaker_enabled)
+  const tiebreakerEnabled = Boolean(hasTiebreaker)
   const openFlag = typeof is_open === 'boolean' ? is_open : true
 
   // Validate theme
@@ -96,9 +95,8 @@ export async function POST(request: Request) {
     title,
     slug,
     is_open: openFlag,
-    tiebreaker_enabled: tiebreakerEnabled,
-    tiebreaker_answer: tiebreaker_answer ?? null,
-    tiebreaker_prompt: tiebreaker_prompt ?? null,
+    tiebreaker_answer: hasTiebreaker ? (tiebreaker_answer ?? null) : null,
+    tiebreaker_prompt: hasTiebreaker ? (tiebreaker_prompt ?? null) : null,
     option_a_label: option_a_label ?? null,
     option_b_label: option_b_label ?? null,
     option_a_emoji: option_a_emoji ?? null,

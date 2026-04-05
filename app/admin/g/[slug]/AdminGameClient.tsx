@@ -28,7 +28,7 @@ export default function AdminGameClient() {
   const [optionAEmoji, setOptionAEmoji] = useState<string | null>(null)
   const [optionBEmoji, setOptionBEmoji] = useState<string | null>(null)
   const [savingLabels, setSavingLabels] = useState(false)
-  const [tiebreakerEnabledLocal, setTiebreakerEnabledLocal] = useState(false)
+  
   const [tiebreakerAnswerLocal, setTiebreakerAnswerLocal] = useState<number | ''>('')
   const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
   const [editingLabels, setEditingLabels] = useState(false)
@@ -94,7 +94,7 @@ export default function AdminGameClient() {
       setOptionB((gData as any).option_b_label ?? '')
       setOptionAEmoji((gData as any).option_a_emoji ?? null)
       setOptionBEmoji((gData as any).option_b_emoji ?? null)
-      setTiebreakerEnabledLocal(Boolean((gData as any).tiebreaker_enabled))
+      // tiebreaker presence is derived from prompt/answer fields
       setTiebreakerAnswerLocal((gData as any).tiebreaker_answer ?? '')
       setTiebreakerPrompt((gData as any).tiebreaker_prompt ?? '')
 
@@ -211,6 +211,8 @@ export default function AdminGameClient() {
     return <div className="p-8">Game not found</div>
   }
 
+  const hasTiebreaker = Boolean((game as any)?.tiebreaker_prompt) || (((game as any)?.tiebreaker_answer !== undefined) && (game as any)?.tiebreaker_answer !== null && String((game as any)?.tiebreaker_answer).trim() !== '')
+
   if (checkingUser) return <div className="p-8">Checking auth…</div>
   if (!user) {
     return (
@@ -288,14 +290,11 @@ export default function AdminGameClient() {
     if (!game) return
     setSavingLabels(true)
     try {
-      // validate tiebreaker numeric when enabled
-      if (tiebreakerEnabledLocal) {
-        const raw = tiebreakerAnswerLocal
-        if (raw === '' || !Number.isFinite(Number(raw))) {
-          setError('Tiebreaker answer must be a number')
-          setSavingLabels(false)
-          return
-        }
+      // validate tiebreaker numeric when provided
+      if (tiebreakerAnswerLocal !== '' && !Number.isFinite(Number(tiebreakerAnswerLocal))) {
+        setError('Tiebreaker answer must be a number')
+        setSavingLabels(false)
+        return
       }
       const updatePayload: any = {
         option_a_label: optionA || null,
@@ -327,18 +326,14 @@ export default function AdminGameClient() {
     if (!game) return
     setSavingLabels(true)
     try {
-      if (tiebreakerEnabledLocal) {
-        const raw = tiebreakerAnswerLocal
-        if (raw === '' || !Number.isFinite(Number(raw))) {
-          setError('Tiebreaker answer must be a number')
-          setSavingLabels(false)
-          return
-        }
+      if (tiebreakerAnswerLocal !== '' && !Number.isFinite(Number(tiebreakerAnswerLocal))) {
+        setError('Tiebreaker answer must be a number')
+        setSavingLabels(false)
+        return
       }
       const updatePayload: any = {
-        tiebreaker_enabled: Boolean(tiebreakerEnabledLocal),
         tiebreaker_prompt: tiebreakerPrompt || null,
-        tiebreaker_answer: tiebreakerEnabledLocal ? (tiebreakerAnswerLocal === '' ? null : Number(tiebreakerAnswerLocal)) : null
+        tiebreaker_answer: tiebreakerAnswerLocal === '' ? null : (Number.isFinite(Number(tiebreakerAnswerLocal)) ? Number(tiebreakerAnswerLocal) : null)
       }
       const { data, error } = await supabase
         .from('games')
@@ -471,7 +466,7 @@ export default function AdminGameClient() {
                           setOptionB((game as any)?.option_b_label ?? '')
                             setOptionAEmoji((game as any)?.option_a_emoji ?? null)
                             setOptionBEmoji((game as any)?.option_b_emoji ?? null)
-                          setTiebreakerEnabledLocal(Boolean((game as any)?.tiebreaker_enabled))
+                          // no-op: tiebreaker presence derived from prompt/answer
                           setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
                           setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
                           setEditingLabels(false)
@@ -616,7 +611,7 @@ export default function AdminGameClient() {
                 </QuestionCard>
               )
             })}
-            {game.tiebreaker_enabled !== undefined && (
+            {hasTiebreaker && (
               <QuestionCard key="tiebreaker" id="tiebreaker" actions={!tiebreakerEditing ? (
                 <div className="space-x-2">
                   <button ref={(el) => { editButtonRefs.current['tiebreaker'] = el }} aria-label="Edit Tiebreaker" className="btn-primary" onClick={() => setTiebreakerEditing(true)}>Edit</button>
@@ -635,12 +630,7 @@ export default function AdminGameClient() {
                 ) : (
                   <div>
                     <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <label className="flex items-center space-x-2">
-                          <input type="checkbox" checked={tiebreakerEnabledLocal} onChange={(e) => setTiebreakerEnabledLocal(e.target.checked)} />
-                          <span className="text-md font-semibold">Tiebreaker enabled</span>
-                        </label>
-                      </div>
+                      {/* Tiebreaker enabled flag removed — presence is derived from prompt/answer */}
                       <div>
                         <label className="block text-md font-semibold">Tiebreaker question</label>
                         <input ref={tiebreakerPromptRef} value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
@@ -653,7 +643,6 @@ export default function AdminGameClient() {
                         <button className="px-3 py-1 btn-primary" onClick={async () => { await handleSaveTiebreaker() }}>Save</button>
                         <button className="btn-cancel" onClick={() => {
                           // cancel edits: restore from `game`
-                          setTiebreakerEnabledLocal(Boolean((game as any)?.tiebreaker_enabled))
                           setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
                           setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
                           setTiebreakerEditing(false)

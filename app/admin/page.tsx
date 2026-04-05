@@ -27,7 +27,7 @@ export default function AdminPage() {
   const [optionAEmoji, setOptionAEmoji] = useState<string | null>(null)
   const [optionBEmoji, setOptionBEmoji] = useState<string | null>(null)
   const [theme, setTheme] = useState<'default' | 'baby-autumn'>('default')
-  const [tiebreakerEnabled, setTiebreakerEnabled] = useState(false)
+  
   const [tiebreakerAnswer, setTiebreakerAnswer] = useState<number | ''>('')
   const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
   const [optionALabel, setOptionALabel] = useState('')
@@ -128,38 +128,27 @@ export default function AdminPage() {
       return
     }
 
-    if (tiebreakerEnabled && tiebreakerAnswer === '') {
-      setFormError('Tiebreaker answer is required when tiebreaker is enabled')
-      return
-    }
-
-    // ensure numeric tiebreaker answer
-    if (tiebreakerEnabled && tiebreakerAnswer !== '' && !Number.isFinite(Number(tiebreakerAnswer))) {
+    // If a tiebreaker answer is provided, ensure it's numeric
+    if (tiebreakerAnswer !== '' && !Number.isFinite(Number(tiebreakerAnswer))) {
       setFormError('Tiebreaker answer must be a number')
-      return
-    }
-
-    if (tiebreakerEnabled && !tiebreakerPrompt.trim()) {
-      setFormError('Tiebreaker question is required when tiebreaker is enabled')
       return
     }
 
     const payload: any = {
       title: title.trim(),
       slug: slug.trim().toLowerCase(),
-      is_open: Boolean(isOpen),
-      tiebreaker_enabled: Boolean(tiebreakerEnabled)
+      is_open: Boolean(isOpen)
     }
     payload.theme = theme
     payload.option_a_label = optionALabel.trim()
     payload.option_b_label = optionBLabel.trim()
     payload.option_a_emoji = optionAEmoji ?? null
     payload.option_b_emoji = optionBEmoji ?? null
-    if (tiebreakerEnabled) payload.tiebreaker_prompt = tiebreakerPrompt.trim()
+    if (tiebreakerPrompt && tiebreakerPrompt.trim()) payload.tiebreaker_prompt = tiebreakerPrompt.trim()
     if (optionALabel.trim()) payload.option_a_label = optionALabel.trim()
     if (optionBLabel.trim()) payload.option_b_label = optionBLabel.trim()
-    if (tiebreakerEnabled) {
-      payload.tiebreaker_answer = tiebreakerAnswer === '' ? null : Number(tiebreakerAnswer)
+    if (tiebreakerAnswer !== '') {
+      payload.tiebreaker_answer = Number(tiebreakerAnswer)
     }
 
     try {
@@ -193,7 +182,6 @@ export default function AdminPage() {
       setOptionBEmoji(null)
       setTheme('default')
       setTiebreakerPrompt('')
-      setTiebreakerEnabled(false)
       setTiebreakerAnswer('')
       // refresh games list
       const { data: refreshed, error: refreshedErr } = await supabase.from('games').select('*').eq('created_by', created.created_by ?? user?.id).order('created_at', { ascending: false })
@@ -363,22 +351,9 @@ export default function AdminPage() {
                     <span className="text-sm">Open</span>
                   </label>
                   <p id="open-desc" className="mt-1 text-xs text-gray-500">When checked, players can submit answers to this game. Uncheck to close submissions.</p>
-
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={tiebreakerEnabled}
-                      onChange={(e) => setTiebreakerEnabled(e.target.checked)}
-                      aria-describedby="tiebreakerEnabled-desc"
-                      className="rounded p-2"
-                    />
-                    <span className="text-sm">Add Tiebreaker Question</span>
-                  </label>
-                  <p id="tiebreakerEnabled-desc" className="mt-1 text-xs text-gray-500">Enable an optional numeric tiebreaker question to rank guesses when players tie.</p>
                 </div>
 
-                {tiebreakerEnabled && (
-                  <div className="space-y-3">
+                <div className="space-y-3">
                     <div>
                       <label htmlFor="tiebreakerPrompt" className="block text-sm font-medium text-gray-700">
                         Tiebreaker question
@@ -407,7 +382,6 @@ export default function AdminPage() {
                       <p className="mt-1 text-xs text-gray-500">The numeric correct answer used to rank tiebreaker guesses (required if tiebreaker enabled).</p>
                     </div>
                   </div>
-                )}
 
                 {attemptedSubmit && formError && <p className="text-sm text-red-600">{formError}</p>}
                 {success && (
