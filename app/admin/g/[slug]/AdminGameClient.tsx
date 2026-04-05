@@ -611,49 +611,57 @@ export default function AdminGameClient() {
                 </QuestionCard>
               )
             })}
-            {hasTiebreaker && (
-              <QuestionCard key="tiebreaker" id="tiebreaker" actions={!tiebreakerEditing ? (
-                <div className="space-x-2">
-                  <button ref={(el) => { editButtonRefs.current['tiebreaker'] = el }} aria-label="Edit Tiebreaker" className="btn-primary" onClick={() => setTiebreakerEditing(true)}>Edit</button>
-                </div>
-              ) : null}>
-                {!tiebreakerEditing ? (
-                  <div>
-                    <div>
-                      <h4 className="text-lg font-bold">Tiebreaker</h4>
-                      <div className="mt-1 font-medium text-lg">{game.tiebreaker_prompt || 'No prompt set'}</div>
-                      {typeof (game as any).tiebreaker_answer !== 'undefined' && (game as any).tiebreaker_answer !== null && (
-                        <div className="mt-1 text-sm text-gray-600">Answer (admin): {(game as any).tiebreaker_answer}</div>
-                      )}
-                    </div>
-                  </div>
+            <QuestionCard key="tiebreaker" id="tiebreaker" actions={!tiebreakerEditing ? (
+              <div className="space-x-2">
+                {!hasTiebreaker ? (
+                  <button ref={(el) => { editButtonRefs.current['tiebreaker'] = el }} aria-label="Add Tiebreaker" className="btn-primary" onClick={() => { setTiebreakerPrompt(''); setTiebreakerAnswerLocal(''); setTiebreakerEditing(true) }}>Add tiebreaker</button>
                 ) : (
+                  <button ref={(el) => { editButtonRefs.current['tiebreaker'] = el }} aria-label="Edit Tiebreaker" className="btn-primary" onClick={() => setTiebreakerEditing(true)}>Edit</button>
+                )}
+              </div>
+            ) : null}>
+              {!tiebreakerEditing ? (
+                <div>
                   <div>
-                    <div className="space-y-3">
-                      {/* Tiebreaker enabled flag removed — presence is derived from prompt/answer */}
-                      <div>
-                        <label className="block text-md font-semibold">Tiebreaker question</label>
-                        <input ref={tiebreakerPromptRef} value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                      </div>
-                      <div>
-                        <label className="block text-md font-semibold">Tiebreaker answer (number)</label>
-                        <input type="number" value={tiebreakerAnswerLocal as any} onChange={(e) => setTiebreakerAnswerLocal(e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
-                      </div>
-                      <div className="mt-2 space-x-2">
-                        <button className="px-3 py-1 btn-primary" onClick={async () => { await handleSaveTiebreaker() }}>Save</button>
-                        <button className="btn-cancel" onClick={() => {
-                          // cancel edits: restore from `game`
-                          setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
-                          setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
-                          setTiebreakerEditing(false)
-                          setFocusReturnId('tiebreaker')
-                        }}>Cancel</button>
-                      </div>
+                    <h4 className="text-lg font-bold">Tiebreaker</h4>
+                    {hasTiebreaker ? (
+                      <>
+                        <div className="mt-1 font-medium text-lg">{game.tiebreaker_prompt || 'No prompt set'}</div>
+                        {typeof (game as any).tiebreaker_answer !== 'undefined' && (game as any).tiebreaker_answer !== null && (
+                          <div className="mt-1 text-sm text-gray-600">Answer (admin): {(game as any).tiebreaker_answer}</div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="mt-1 font-medium text-lg text-gray-600">No tiebreaker configured</div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="space-y-3">
+                    {/* Tiebreaker enabled flag removed — presence is derived from prompt/answer */}
+                    <div>
+                      <label htmlFor="tiebreakerPrompt" className="block text-md font-semibold">Tiebreaker question</label>
+                      <input id="tiebreakerPrompt" ref={tiebreakerPromptRef} value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                    </div>
+                    <div>
+                      <label htmlFor="tiebreakerAnswer" className="block text-md font-semibold">Tiebreaker answer (number)</label>
+                      <input id="tiebreakerAnswer" type="number" value={tiebreakerAnswerLocal as any} onChange={(e) => setTiebreakerAnswerLocal(e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                    </div>
+                    <div className="mt-2 space-x-2">
+                      <button className="px-3 py-1 btn-primary" onClick={async () => { await handleSaveTiebreaker() }}>Save</button>
+                      <button className="btn-cancel" onClick={() => {
+                        // cancel edits: restore from `game`
+                        setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
+                        setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
+                        setTiebreakerEditing(false)
+                        setFocusReturnId('tiebreaker')
+                      }}>Cancel</button>
                     </div>
                   </div>
-                )}
-              </QuestionCard>
-            )}
+                </div>
+              )}
+            </QuestionCard>
           </div>
 
           <form onSubmit={handleAddQuestion} className="mt-6 space-y-3" aria-describedby={formError ? 'addQuestionError' : undefined}>
