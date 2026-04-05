@@ -34,6 +34,7 @@ export default function AdminGameClient() {
   const [tiebreakerError, setTiebreakerError] = useState<string | null>(null)
   const [tiebreakerPromptInvalid, setTiebreakerPromptInvalid] = useState(false)
   const [tiebreakerAnswerInvalid, setTiebreakerAnswerInvalid] = useState(false)
+  const [tiebreakerRemoving, setTiebreakerRemoving] = useState(false)
   const [editingLabels, setEditingLabels] = useState(false)
   const [tiebreakerEditing, setTiebreakerEditing] = useState(false)
 
@@ -392,7 +393,35 @@ export default function AdminGameClient() {
     }
   }
 
-  async function handleToggleOpen() {
+    async function handleRemoveTiebreaker() {
+      if (!game) return
+      if (!confirm('Remove tiebreaker? This cannot be undone.')) return
+      setTiebreakerRemoving(true)
+      setTiebreakerError(null)
+      try {
+        const { data, error } = await supabase
+          .from('games')
+          .update({ tiebreaker_prompt: null, tiebreaker_answer: null })
+          .eq('id', game.id)
+          .select()
+          .limit(1)
+          .maybeSingle()
+        if (error) throw error
+        if (data) {
+          setGame(data as Game)
+          setTiebreakerPrompt('')
+          setTiebreakerAnswerLocal('')
+        }
+        setTiebreakerEditing(false)
+        setFocusReturnId('tiebreaker')
+      } catch (err: any) {
+        setTiebreakerError(err?.message ?? 'Failed to remove tiebreaker')
+      } finally {
+        setTiebreakerRemoving(false)
+      }
+    }
+
+    async function handleToggleOpen() {
     if (!game) return
     setTogglingOpen(true)
     try {
@@ -655,7 +684,10 @@ export default function AdminGameClient() {
                 {!hasTiebreaker ? (
                   <button ref={(el) => { editButtonRefs.current['tiebreaker'] = el }} aria-label="Add Tiebreaker" className="btn-primary" onClick={() => { setTiebreakerPrompt(''); setTiebreakerAnswerLocal(''); setTiebreakerEditing(true) }}>Add tiebreaker</button>
                 ) : (
-                  <button ref={(el) => { editButtonRefs.current['tiebreaker'] = el }} aria-label="Edit Tiebreaker" className="btn-primary" onClick={() => setTiebreakerEditing(true)}>Edit</button>
+                  <>
+                    <button ref={(el) => { editButtonRefs.current['tiebreaker'] = el }} aria-label="Edit Tiebreaker" className="btn-primary" onClick={() => setTiebreakerEditing(true)}>Edit</button>
+                    <button aria-label="Remove Tiebreaker" className="btn-cancel" onClick={handleRemoveTiebreaker} disabled={tiebreakerRemoving}>{tiebreakerRemoving ? 'Removing…' : 'Remove'}</button>
+                  </>
                 )}
               </div>
             ) : null}>
