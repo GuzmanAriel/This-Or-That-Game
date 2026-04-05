@@ -31,6 +31,9 @@ export default function AdminGameClient() {
   
   const [tiebreakerAnswerLocal, setTiebreakerAnswerLocal] = useState<number | ''>('')
   const [tiebreakerPrompt, setTiebreakerPrompt] = useState('')
+  const [tiebreakerError, setTiebreakerError] = useState<string | null>(null)
+  const [tiebreakerPromptInvalid, setTiebreakerPromptInvalid] = useState(false)
+  const [tiebreakerAnswerInvalid, setTiebreakerAnswerInvalid] = useState(false)
   const [editingLabels, setEditingLabels] = useState(false)
   const [tiebreakerEditing, setTiebreakerEditing] = useState(false)
 
@@ -43,6 +46,7 @@ export default function AdminGameClient() {
   const editButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [focusReturnId, setFocusReturnId] = useState<string | null>(null)
   const tiebreakerPromptRef = useRef<HTMLInputElement | null>(null)
+  const tiebreakerAnswerRef = useRef<HTMLInputElement | null>(null)
 
 
   // new question form
@@ -177,6 +181,8 @@ export default function AdminGameClient() {
       try { tiebreakerPromptRef.current?.focus() } catch (e) {}
     })
   }, [tiebreakerEditing])
+
+  // when an input is invalid, we'll programmatically focus it; handled in save flow
 
   useEffect(() => {
     // generate QR data URL for the public play link using the local `qrcode` package
@@ -325,9 +331,42 @@ export default function AdminGameClient() {
   async function handleSaveTiebreaker() {
     if (!game) return
     setSavingLabels(true)
+    setTiebreakerError(null)
     try {
-      if (tiebreakerAnswerLocal !== '' && !Number.isFinite(Number(tiebreakerAnswerLocal))) {
-        setError('Tiebreaker answer must be a number')
+      const promptTrimmed = (tiebreakerPrompt ?? '').toString().trim()
+      const answerEmpty = tiebreakerAnswerLocal === '' || tiebreakerAnswerLocal === null
+
+      // require both fields for saving a tiebreaker; disallow saving with missing pieces
+      if (promptTrimmed === '' && answerEmpty) {
+        setTiebreakerPromptInvalid(true)
+        setTiebreakerAnswerInvalid(true)
+        setTiebreakerError('Please enter a tiebreaker question and answer, or cancel')
+        requestAnimationFrame(() => { try { tiebreakerPromptRef.current?.focus() } catch (e) {} })
+        setSavingLabels(false)
+        return
+      }
+      if (promptTrimmed !== '' && answerEmpty) {
+        setTiebreakerPromptInvalid(false)
+        setTiebreakerAnswerInvalid(true)
+        setTiebreakerError('Please provide a numeric tiebreaker answer')
+        requestAnimationFrame(() => { try { tiebreakerAnswerRef.current?.focus() } catch (e) {} })
+        setSavingLabels(false)
+        return
+      }
+      if (promptTrimmed === '' && !answerEmpty) {
+        setTiebreakerPromptInvalid(true)
+        setTiebreakerAnswerInvalid(false)
+        setTiebreakerError('Please provide a tiebreaker question')
+        requestAnimationFrame(() => { try { tiebreakerPromptRef.current?.focus() } catch (e) {} })
+        setSavingLabels(false)
+        return
+      }
+
+      if (!answerEmpty && !Number.isFinite(Number(tiebreakerAnswerLocal))) {
+        setTiebreakerPromptInvalid(false)
+        setTiebreakerAnswerInvalid(true)
+        setTiebreakerError('Tiebreaker answer must be a number')
+        requestAnimationFrame(() => { try { tiebreakerAnswerRef.current?.focus() } catch (e) {} })
         setSavingLabels(false)
         return
       }
@@ -347,7 +386,7 @@ export default function AdminGameClient() {
       setTiebreakerEditing(false)
       setFocusReturnId('tiebreaker')
     } catch (err: any) {
-      setError(err?.message ?? 'Failed to save tiebreaker')
+      setTiebreakerError(err?.message ?? 'Failed to save tiebreaker')
     } finally {
       setSavingLabels(false)
     }
@@ -642,15 +681,15 @@ export default function AdminGameClient() {
                     {/* Tiebreaker enabled flag removed — presence is derived from prompt/answer */}
                     <div>
                       <label htmlFor="tiebreakerPrompt" className="block text-md font-semibold">Tiebreaker question</label>
-                      <input id="tiebreakerPrompt" ref={tiebreakerPromptRef} value={tiebreakerPrompt} onChange={(e) => setTiebreakerPrompt(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                      <input id="tiebreakerPrompt" ref={tiebreakerPromptRef} value={tiebreakerPrompt} onChange={(e) => { setTiebreakerPrompt(e.target.value); setTiebreakerError(null); setTiebreakerPromptInvalid(false) }} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleSaveTiebreaker() } }} aria-describedby={tiebreakerError ? 'tiebreakerError' : undefined} aria-invalid={tiebreakerPromptInvalid ? true : undefined} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
                     </div>
                     <div>
                       <label htmlFor="tiebreakerAnswer" className="block text-md font-semibold">Tiebreaker answer (number)</label>
-                      <input id="tiebreakerAnswer" type="number" value={tiebreakerAnswerLocal as any} onChange={(e) => setTiebreakerAnswerLocal(e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+                      <input id="tiebreakerAnswer" ref={tiebreakerAnswerRef} type="number" value={tiebreakerAnswerLocal as any} onChange={(e) => { setTiebreakerAnswerLocal(e.target.value === '' ? '' : Number(e.target.value)); setTiebreakerError(null); setTiebreakerAnswerInvalid(false) }} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleSaveTiebreaker() } }} aria-describedby={tiebreakerError ? 'tiebreakerError' : undefined} aria-invalid={tiebreakerAnswerInvalid ? true : undefined} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
                     </div>
                     <div className="mt-2 space-x-2">
-                      <button className="px-3 py-1 btn-primary" onClick={async () => { await handleSaveTiebreaker() }}>Save</button>
-                      <button className="btn-cancel" onClick={() => {
+                      <button type="button" className="px-3 py-1 btn-primary" onClick={async () => { await handleSaveTiebreaker() }}>Save</button>
+                      <button type="button" className="btn-cancel" onClick={() => {
                         // cancel edits: restore from `game`
                         setTiebreakerPrompt((game as any)?.tiebreaker_prompt ?? '')
                         setTiebreakerAnswerLocal((game as any)?.tiebreaker_answer ?? '')
@@ -658,6 +697,11 @@ export default function AdminGameClient() {
                         setFocusReturnId('tiebreaker')
                       }}>Cancel</button>
                     </div>
+                    {tiebreakerError && (
+                      <div id="tiebreakerError" role="alert" aria-atomic="true" className="text-sm text-red-600">
+                        {tiebreakerError}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
