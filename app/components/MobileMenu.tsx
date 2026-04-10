@@ -42,8 +42,32 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
     return () => window.removeEventListener('keydown', handleKey)
   }, [open, onClose])
 
+  useEffect(() => {
+    const doc = document.documentElement
+    const prevDocOverflow = doc.style.overflow
+    const prevBodyOverflow = document.body.style.overflow
+    if (open) {
+      doc.style.overflow = 'hidden'
+      document.body.style.overflow = 'hidden'
+    } else {
+      doc.style.overflow = prevDocOverflow
+      document.body.style.overflow = prevBodyOverflow
+    }
+    return () => {
+      doc.style.overflow = prevDocOverflow
+      document.body.style.overflow = prevBodyOverflow
+    }
+  }, [open])
+
   return (
-    <div ref={menuRef} id="mobile-menu" className={`mobile-menu ${open ? 'open' : ''}`} aria-hidden={!open} data-component="mobile-menu">
+    <div
+      ref={menuRef}
+      id="mobile-menu"
+      className={`mobile-menu ${open ? 'open' : ''} fixed left-0 right-0 overflow-auto z-50 bg-white`}
+      style={{ height: 'calc(100dvh - 131px)'}}
+      aria-hidden={!open}
+      data-component="mobile-menu"
+    >
       <nav className="p-6" aria-label="Mobile menu">
         <a href="/" onClick={onClose} className="block text-xl font-semibold">Home</a>
         {isAdmin && <a href="/admin" onClick={onClose} className="block text-xl font-semibold mt-6">Admin</a>}
