@@ -59,6 +59,44 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
     }
   }, [open])
 
+  // Focus trap: keep Tab/Shift+Tab navigation inside the menu when open
+  useEffect(() => {
+    if (!open) return
+    const root = menuRef.current
+    if (!root) return
+    const selector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+    const getFocusable = () =>
+      Array.from(root.querySelectorAll<HTMLElement>(selector)).filter((el) => el.offsetParent !== null && !el.hasAttribute('disabled'))
+
+    function handleKey(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return
+      const focusable = getFocusable()
+      if (focusable.length === 0) {
+        e.preventDefault()
+        return
+      }
+      const active = document.activeElement as HTMLElement
+      const idx = focusable.indexOf(active)
+      if (e.shiftKey) {
+        // shift+tab from first -> move to last
+        if (idx <= 0) {
+          e.preventDefault()
+          focusable[focusable.length - 1].focus()
+        }
+      } else {
+        // tab from last -> move to first
+        if (idx === -1 || idx === focusable.length - 1) {
+          e.preventDefault()
+          focusable[0].focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [open])
+
   return (
     <div
       ref={menuRef}
