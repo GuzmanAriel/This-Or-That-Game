@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { getSupabaseClient } from '../../lib/supabaseClient'
 import MobileMenu from './MobileMenu'
 
@@ -8,6 +8,8 @@ export default function AuthBar() {
   const supabase = getSupabaseClient()
   const [user, setUser] = useState<any | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const toggleRef = useRef<HTMLButtonElement | null>(null)
+  const openedByKeyboard = useRef(false)
 
   // Menu data for admin-created games and games this user submitted to
   const [adminGames, setAdminGames] = useState<any[]>([])
@@ -241,7 +243,15 @@ export default function AuthBar() {
          
         </div>
          <button
-            onClick={() => setMobileOpen((s) => !s)}
+            ref={toggleRef}
+            onClick={() => { openedByKeyboard.current = false; setMobileOpen((s) => !s) }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                openedByKeyboard.current = true
+                setMobileOpen((s) => !s)
+                e.preventDefault()
+              }
+            }}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
             aria-label="Toggle navigation"
@@ -259,7 +269,13 @@ export default function AuthBar() {
           </button>
           <MobileMenu
             open={mobileOpen}
-            onClose={() => setMobileOpen(false)}
+            onClose={() => {
+              setMobileOpen(false)
+              // return focus to the toggle button when menu closes
+              try { toggleRef.current?.focus() } catch (e) {}
+              openedByKeyboard.current = false
+            }}
+            focusOnOpen={openedByKeyboard.current}
             user={user}
             isAdmin={isAdmin}
             playerGames={playerGames}

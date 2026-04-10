@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 
 type Props = {
   open: boolean
@@ -11,11 +11,36 @@ type Props = {
   adminGames: any[]
   submittedGames: any[]
   onSignOut: () => void
+  focusOnOpen?: boolean
 }
 
-export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, adminGames, submittedGames, onSignOut }: Props) {
+export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, adminGames, submittedGames, onSignOut, focusOnOpen }: Props) {
+  const menuRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!open || !focusOnOpen) return
+    const root = menuRef.current
+    if (!root) return
+    const selector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    const first = root.querySelector<HTMLElement>(selector)
+    if (first) {
+      first.focus()
+    }
+  }, [open, focusOnOpen])
+
+  useEffect(() => {
+    if (!open) return
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [open, onClose])
+
   return (
-    <div id="mobile-menu" className={`mobile-menu ${open ? 'open' : ''}`} aria-hidden={!open} data-component="mobile-menu">
+    <div ref={menuRef} id="mobile-menu" className={`mobile-menu ${open ? 'open' : ''}`} aria-hidden={!open} data-component="mobile-menu">
       <nav className="p-6">
         <a href="/" onClick={onClose} className="block text-xl font-semibold">Home</a>
         {isAdmin && <a href="/admin" onClick={onClose} className="block text-xl font-semibold mt-6">Admin</a>}
