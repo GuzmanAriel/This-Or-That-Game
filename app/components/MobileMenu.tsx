@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 type Props = {
   open: boolean
@@ -16,6 +16,9 @@ type Props = {
 
 export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, adminGames, submittedGames, onSignOut, focusOnOpen }: Props) {
   const menuRef = useRef<HTMLDivElement | null>(null)
+  const [playerOpen, setPlayerOpen] = useState(false)
+  const [adminOpen, setAdminOpen] = useState(false)
+  const [submittedOpen, setSubmittedOpen] = useState(false)
 
   useEffect(() => {
     if (!open || !focusOnOpen) return
@@ -41,14 +44,25 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
 
   return (
     <div ref={menuRef} id="mobile-menu" className={`mobile-menu ${open ? 'open' : ''}`} aria-hidden={!open} data-component="mobile-menu">
-      <nav className="p-6">
+      <nav className="p-6" aria-label="Mobile menu">
         <a href="/" onClick={onClose} className="block text-xl font-semibold">Home</a>
         {isAdmin && <a href="/admin" onClick={onClose} className="block text-xl font-semibold mt-6">Admin</a>}
 
         {playerGames.length > 0 && (
           <div>
-            <div className="font-bold text-xl mt-6">Player Games</div>
-            <ul className="pl-3 mt-3 space-y-2">
+            <button
+              id="player-games-toggle"
+              role="heading"
+              aria-level={3}
+              aria-controls="player-games-list"
+              aria-expanded={playerOpen}
+              onClick={() => setPlayerOpen((s) => !s)}
+              className="font-bold text-xl mt-6 flex items-center justify-between w-full"
+            >
+              <span>Player Games</span>
+              <span aria-hidden="true" className="ml-3">{playerOpen ? '▾' : '▸'}</span>
+            </button>
+            <ul id="player-games-list" role="region" aria-labelledby="player-games-toggle" className="pl-3 mt-3 space-y-2" hidden={!playerOpen}>
               {playerGames.map((g) => (
                 <li key={g.id}><a href={`/g/${g.slug}`} onClick={onClose} className="block text-xl font-semibold mt-3">{g.title}</a></li>
               ))}
@@ -58,8 +72,19 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
 
         {adminGames.length > 0 && (
           <div>
-            <div className="font-semibold text-xl mt-6">Your Games</div>
-            <ul className="pl-3 mt-3 space-y-1">
+            <button
+              id="your-games-toggle"
+              role="heading"
+              aria-level={3}
+              aria-controls="your-games-list"
+              aria-expanded={adminOpen}
+              onClick={() => setAdminOpen((s) => !s)}
+              className="font-semibold text-xl mt-6 flex items-center justify-between w-full"
+            >
+              <span>Your Games</span>
+              <span aria-hidden="true" className="ml-3">{adminOpen ? '▾' : '▸'}</span>
+            </button>
+            <ul id="your-games-list" role="region" aria-labelledby="your-games-toggle" className="pl-3 mt-3 space-y-1" hidden={!adminOpen}>
               {adminGames.map((g) => (
                 <li key={g.id}><a href={`/g/${g.slug}`} onClick={onClose} className="block font-semibold text-xl mt-3">{g.title}</a></li>
               ))}
@@ -69,8 +94,19 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
 
         {submittedGames.length > 0 && (
           <div>
-            <div className="font-bold">Your Submissions</div>
-            <ul className="pl-3 mt-3 space-y-1">
+            <button
+              id="submitted-games-toggle"
+              role="heading"
+              aria-level={3}
+              aria-controls="submitted-games-list"
+              aria-expanded={submittedOpen}
+              onClick={() => setSubmittedOpen((s) => !s)}
+              className="font-bold mt-6 flex items-center justify-between w-full"
+            >
+              <span>Your Submissions</span>
+              <span aria-hidden="true" className="ml-3">{submittedOpen ? '▾' : '▸'}</span>
+            </button>
+            <ul id="submitted-games-list" role="region" aria-labelledby="submitted-games-toggle" className="pl-3 mt-3 space-y-1" hidden={!submittedOpen}>
               {submittedGames.map((g) => (
                 <li key={g.id}><a href={`/g/${g.slug}`} onClick={onClose} className="block font-bold">{g.title}</a></li>
               ))}
