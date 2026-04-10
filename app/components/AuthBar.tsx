@@ -243,6 +243,7 @@ export default function AuthBar() {
          <button
             onClick={() => setMobileOpen((s) => !s)}
             aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
             aria-label="Toggle navigation"
             className="mobile-toggle p-2 rounded"
           >
