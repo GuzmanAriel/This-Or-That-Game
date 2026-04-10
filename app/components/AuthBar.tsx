@@ -154,7 +154,8 @@ export default function AuthBar() {
 
   return (
     <div className="w-full border-b authbar shadow-sm relative" data-component="authbar">
-      <div className="container mx-auto px-3 py-5 flex items-center justify-between font-heading">
+      <div className="container mx-auto px-3 py-5 flex flex-wrap items-center justify-between font-heading">
+        <a href="#main-content" className="w-full mb-2 p-2 z-50 absolute top-2 text-md transform -translate-y-12 focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:relative focus:top-0">Skip to main content</a>
         {/* Brand / home link */}
           <div className="flex items-center space-x-4">
           <a href="/" className="text-2xl font-semibold tracking-widest">🎉 This OR That</a>
