@@ -153,6 +153,10 @@ export default function HomePage() {
                 </p>
                 <code className="block mt-3 bg-gray-100 px-3 py-2 rounded text-sm">/g/example-slug</code>
                 <code className="block mt-3 bg-gray-100 px-3 py-2 rounded text-sm">/g/jack-and-jills-baby-shower</code>
+                <div className="mt-3 text-sm text-gray-600">Note: the game code is the <strong>slug</strong> — the last part of the URL (for example <span className="font-mono">/g/test-game</span>).</div>
+                <div className="mt-4">
+                  <a href="/join" className="inline-block btn-primary">Join with Game Code (slug)</a>
+                </div>
               </div>
             </div>
           </section>

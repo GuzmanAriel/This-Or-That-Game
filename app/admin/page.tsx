@@ -301,7 +301,7 @@ export default function AdminPage() {
                     disabled
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-100"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Automatically generated from the title; spaces become hyphens.</p>
+                  <p className="mt-1 text-xs text-gray-500">Automatically generated from the title; spaces become hyphens. This slug is the game code players can use or that appears in the share URL.</p>
                 </div>
 
                 <div>
@@ -386,13 +386,14 @@ export default function AdminPage() {
                 {attemptedSubmit && formError && <p className="text-sm text-red-600">{formError}</p>}
                 {success && (
                   <div className="rounded-md border p-3 bg-green-50 text-sm">
-                    Game created: <strong>{success.slug}</strong>
+                    Game created — game code (slug): <strong>{success.slug}</strong>
                     <div className="mt-2">
                       <a href={`/g/${success.slug}`}>/g/{success.slug}</a>
                     </div>
                     <div>
                       <a href={`/g/${success.slug}/leaderboard`}>/g/{success.slug}/leaderboard</a>
                     </div>
+                    <div className="mt-2 text-xs text-gray-600">Share the above link or give players the game code (slug) so they can join.</div>
                   </div>
                 )}
 
