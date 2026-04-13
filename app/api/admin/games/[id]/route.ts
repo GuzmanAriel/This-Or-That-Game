@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseServiceClient } from '../../../../../../lib/supabaseService'
+import { getSupabaseServiceClient } from '../../../../../lib/supabaseService'
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {

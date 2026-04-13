@@ -42,6 +42,7 @@ export default function AdminGameClient() {
   const [togglingOpen, setTogglingOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const router = useRouter()
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const optionARef = useRef<HTMLInputElement | null>(null)
   const optionBRef = useRef<HTMLInputElement | null>(null)
@@ -398,7 +399,7 @@ export default function AdminGameClient() {
 
   async function handleDeleteGame() {
     if (!game) return
-    if (!confirm('Delete this game and all its questions? This cannot be undone.')) return
+    // Confirmation handled by modal
     try {
       setDeleting(true)
       const session = await supabase.auth.getSession()
@@ -572,11 +573,11 @@ export default function AdminGameClient() {
                   )}
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <button onClick={handleCopyUrl} className="btn-primary" aria-label="Copy Game URL">Copy URL</button>
-                    <a className="btn-primary" href={`/g/${game.slug}`} aria-label="Go to Game">Game</a>
-                    <a className="btn-primary" href={`/g/${game.slug}/leaderboard`} aria-label="Go to Leaderboard">Leaderboard</a>
-                    {copiedUrl && <span className="ml-2 text-sm text-green-600">Copied!</span>}
-                  </div>
+                          <button onClick={handleCopyUrl} className="btn-primary" aria-label="Copy Game URL">Copy URL</button>
+                          <a className="btn-primary" href={`/g/${game.slug}`} aria-label="Go to Game">Game</a>
+                          <a className="btn-primary" href={`/g/${game.slug}/leaderboard`} aria-label="Go to Leaderboard">Leaderboard</a>
+                          {copiedUrl && <span className="ml-2 text-sm text-green-600">Copied!</span>}
+                        </div>
               </div>
 
               <div className="text-center mt-6">
@@ -633,6 +634,23 @@ export default function AdminGameClient() {
                       <div className="mt-4 flex justify-end space-x-2">
                         <button className="btn-cancel" onClick={() => setShowRemoveModal(false)}>Cancel</button>
                         <button className="btn-danger" onClick={async () => { setShowRemoveModal(false); await handleRemoveTiebreaker() }} disabled={tiebreakerRemoving}>{tiebreakerRemoving ? 'Removing…' : 'Remove'}</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {showDeleteModal && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+                  <div className="bg-white rounded max-w-md w-full p-6">
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-lg font-medium">Delete game</h3>
+                      <button className="text-sm text-gray-600" onClick={() => setShowDeleteModal(false)}>Close</button>
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-700">Are you sure you want to delete this game? This will permanently remove the game and all associated questions.</p>
+                      <div className="mt-4 flex justify-end space-x-2">
+                        <button className="btn-cancel" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                        <button className="btn-danger" onClick={async () => { setShowDeleteModal(false); await handleDeleteGame() }} disabled={deleting}>{deleting ? 'Deleting…' : 'Delete'}</button>
                       </div>
                     </div>
                   </div>
@@ -820,10 +838,10 @@ export default function AdminGameClient() {
         </section>
 
       </div>
-      <div className="mt-8 border-t pt-6">
+          <div className="mt-8 border-t pt-6">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-sm text-gray-600 mb-4">Danger zone: permanently delete this game and all its questions.</p>
-          <button className="btn-danger px-6 py-3" onClick={handleDeleteGame} disabled={deleting} aria-disabled={deleting}>{deleting ? 'Deleting…' : 'Delete game'}</button>
+          <button className="btn-danger px-6 py-3" onClick={() => setShowDeleteModal(true)} disabled={deleting} aria-disabled={deleting}>{deleting ? 'Deleting…' : 'Delete game'}</button>
         </div>
       </div>
 
