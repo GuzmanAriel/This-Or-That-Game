@@ -170,6 +170,18 @@ body[data-theme='baby-autumn'] .btn-primary:active {
   background-color: rgba(0,0,0,0.06);
 }
 
+/* Danger / destructive button (red) */
+.btn-danger {
+  @apply text-white px-4 py-2 rounded inline-block text-lg font-medium;
+  background-color: #dc2626; /* red-600 */
+}
+.btn-danger:hover {
+  background-color: #b91c1c; /* red-700 */
+}
+.btn-danger:active {
+  background-color: #991b1b; /* red-800 */
+}
+
 /* baby-autumn overrides */
 body[data-theme='baby-autumn'] .btn-secondary {
   background-color: #DC744E;
@@ -239,7 +251,9 @@ body[data-theme='baby-autumn'] .option-button.selected {
 .option-button:focus,
 .option-button:focus-visible,
 .btn-cancel:focus,
-.btn-cancel:focus-visible {
+.btn-cancel:focus-visible,
+.btn-danger:focus,
+.btn-danger:focus-visible {
   outline: none;
   box-shadow: 0 0 0 4px rgba(145,53,114,0.25);
   border-radius: 0.375rem;
@@ -258,7 +272,9 @@ body[data-theme='baby-autumn'] .btn-primary:focus-visible,
 body[data-theme='baby-autumn'] .option-button:focus,
 body[data-theme='baby-autumn'] .option-button:focus-visible,
 body[data-theme='baby-autumn'] .btn-cancel:focus,
-body[data-theme='baby-autumn'] .btn-cancel:focus-visible {
+body[data-theme='baby-autumn'] .btn-cancel:focus-visible,
+body[data-theme='baby-autumn'] .btn-danger:focus,
+body[data-theme='baby-autumn'] .btn-danger:focus-visible {
   box-shadow: 0 0 0 4px rgba(142,41,8,0.25);
   outline: none;
 }

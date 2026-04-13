@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { getSupabaseClient } from '../../../../lib/supabase'
 import type { Game, Question } from '../../../../lib/types'
 import EmojiPicker from '../../../components/EmojiPicker'
@@ -40,6 +40,8 @@ export default function AdminGameClient() {
   const [tiebreakerEditing, setTiebreakerEditing] = useState(false)
 
   const [togglingOpen, setTogglingOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const router = useRouter()
 
   const optionARef = useRef<HTMLInputElement | null>(null)
   const optionBRef = useRef<HTMLInputElement | null>(null)
@@ -394,6 +396,32 @@ export default function AdminGameClient() {
     }
   }
 
+  async function handleDeleteGame() {
+    if (!game) return
+    if (!confirm('Delete this game and all its questions? This cannot be undone.')) return
+    try {
+      setDeleting(true)
+      const session = await supabase.auth.getSession()
+      const token = session.data?.session?.access_token
+      if (!token) {
+        setError('Authentication required — please sign in')
+        setDeleting(false)
+        return
+      }
+      const res = await fetch(`/api/admin/games/${game.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+      const body = await res.json()
+      if (!res.ok) {
+        setError(body?.error || 'Failed to delete game')
+        setDeleting(false)
+        return
+      }
+      router.push('/admin')
+    } catch (err: any) {
+      setError(err?.message ?? 'Request failed')
+      setDeleting(false)
+    }
+  }
+
     async function handleRemoveTiebreaker() {
       if (!game) return
       setTiebreakerRemoving(true)
@@ -604,7 +632,7 @@ export default function AdminGameClient() {
                       <p className="text-sm text-gray-700">Are you sure you want to remove the tiebreaker? This will clear the question and answer.</p>
                       <div className="mt-4 flex justify-end space-x-2">
                         <button className="btn-cancel" onClick={() => setShowRemoveModal(false)}>Cancel</button>
-                        <button className="btn-primary" onClick={async () => { setShowRemoveModal(false); await handleRemoveTiebreaker() }} disabled={tiebreakerRemoving}>{tiebreakerRemoving ? 'Removing…' : 'Remove'}</button>
+                        <button className="btn-danger" onClick={async () => { setShowRemoveModal(false); await handleRemoveTiebreaker() }} disabled={tiebreakerRemoving}>{tiebreakerRemoving ? 'Removing…' : 'Remove'}</button>
                       </div>
                     </div>
                   </div>
@@ -792,7 +820,13 @@ export default function AdminGameClient() {
         </section>
 
       </div>
-      
+      <div className="mt-8 border-t pt-6">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-sm text-gray-600 mb-4">Danger zone: permanently delete this game and all its questions.</p>
+          <button className="btn-danger px-6 py-3" onClick={handleDeleteGame} disabled={deleting} aria-disabled={deleting}>{deleting ? 'Deleting…' : 'Delete game'}</button>
+        </div>
+      </div>
+
     </div>
   )
 }
