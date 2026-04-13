@@ -37,6 +37,7 @@ export default function GameClient({ params }: Props) {
   // player state: stored in memory and persisted to localStorage so refresh keeps session
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [playerLoading, setPlayerLoading] = useState(false)
+  const [playerMatches, setPlayerMatches] = useState<any[] | null>(null)
 
   // answers state: map question_id -> { value: 'A'|'B'|'', loading, error, saved }
   const [answersState, setAnswersState] = useState<Record<string, { value: 'A' | 'B' | ''; loading: boolean; error?: string; saved?: boolean }>>({})
@@ -229,39 +230,75 @@ export default function GameClient({ params }: Props) {
     const f = new FormData(form)
     const first_name = String(f.get('first_name') || '').trim()
     const last_name = String(f.get('last_name') || '').trim()
-    if (!first_name) return alert('Please enter your first name')
+    if (!first_name || !last_name) return alert('Please enter your first and last name')
 
     setPlayerLoading(true)
     try {
-      // try to find an existing player for this game with same names
-      const { data: existing } = await supabase
+      // find players with the same exact name for this game
+      const { data: found } = await supabase
         .from('players')
         .select('*')
         .eq('game_id', game.id)
         .eq('first_name', first_name)
         .eq('last_name', last_name)
+
+      if (found && (found as any[]).length >= 1) {
+        // ask user to confirm which entry to use (or create new)
+        setPlayerMatches(found as any[])
+        setPlayerLoading(false)
+        return
+      }
+
+      // No existing matches — create a new player
+      const { data: inserted, error } = await supabase
+        .from('players')
+        .insert({ game_id: game.id, first_name, last_name })
+        .select()
         .limit(1)
         .maybeSingle()
-
-      let pid: string
-      if (existing) {
-        pid = (existing as any).id
-      } else {
-        const { data: inserted, error } = await supabase
-          .from('players')
-          .insert({ game_id: game.id, first_name, last_name })
-          .select()
-          .limit(1)
-          .maybeSingle()
-        if (error) throw error
-        pid = (inserted as any).id
-      }
+      if (error) throw error
+      const pid = (inserted as any).id
 
       setPlayerId(pid)
       try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
     } catch (err: any) {
       console.error('join error', err)
       alert(err?.message || 'Failed to join')
+    } finally {
+      setPlayerLoading(false)
+    }
+  }
+
+  function handleSelectPlayerFromMatches(pid: string) {
+    if (!game) return
+    setPlayerId(pid)
+    try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
+    setPlayerMatches(null)
+  }
+
+  async function handleCreateNewPlayerFromMatches() {
+    if (!game) return
+    // create new player even though name matches existing rows
+    setPlayerLoading(true)
+    try {
+      const form = document.querySelector('form') as HTMLFormElement | null
+      const f = form ? new FormData(form) : null
+      const first_name = String(f?.get('first_name') || '').trim()
+      const last_name = String(f?.get('last_name') || '').trim()
+      const { data: inserted, error } = await supabase
+        .from('players')
+        .insert({ game_id: game.id, first_name, last_name })
+        .select()
+        .limit(1)
+        .maybeSingle()
+      if (error) throw error
+      const pid = (inserted as any).id
+      setPlayerId(pid)
+      try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
+      setPlayerMatches(null)
+    } catch (err: any) {
+      console.error('create new player error', err)
+      alert(err?.message ?? 'Failed to create player')
     } finally {
       setPlayerLoading(false)
     }
@@ -413,15 +450,39 @@ export default function GameClient({ params }: Props) {
       {/* If no playerId, show join form */}
       {!playerId ? (
         <section className="mt-6 max-w-md">
+          {playerMatches && playerMatches.length > 0 ? (
+            <div>
+              <h3 className="text-xl font-bold">Multiple players found</h3>
+              <p className="mt-2 text-sm text-gray-600">We found multiple players with that name for this game — choose the correct entry or create a new player.</p>
+              <ul className="mt-4 space-y-2">
+                {playerMatches.map((p) => (
+                  <li key={p.id} className="flex items-center justify-between border rounded p-3">
+                    <div>
+                      <div className="font-medium">{p.first_name} {p.last_name}</div>
+                      <div className="text-xs text-gray-500">Joined: {p.created_at ? new Date(p.created_at).toLocaleString() : '—'}</div>
+                    </div>
+                    <div className="ml-4 flex-shrink-0">
+                      <button onClick={() => handleSelectPlayerFromMatches(p.id)} className="btn-primary">Continue</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-4 flex items-center space-x-2">
+                <button onClick={handleCreateNewPlayerFromMatches} className="btn-primary">Create new player</button>
+                <button onClick={() => setPlayerMatches(null)} className="btn-cancel">Cancel</button>
+              </div>
+            </div>
+          ) : (
+          <>
           <h3 className="text-xl font-bold">Join game</h3>
           <form onSubmit={handleJoin} className="mt-4 space-y-3">
             <div>
               <label className="block text-md font-semibold">First name</label>
-              <input name="first_name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+              <input name="first_name" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
             </div>
             <div>
               <label className="block text-md font-semibold">Last name</label>
-              <input name="last_name" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
+              <input name="last_name" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" />
             </div>
             <div>
               <button type="submit" className="btn-primary" disabled={playerLoading}>
@@ -464,6 +525,8 @@ export default function GameClient({ params }: Props) {
               {copiedUrl && <span className="text-sm text-green-600">Copied!</span>}
             </div>
           </div>
+          </>
+          )}
         </section>
       ) : (
         // Player exists: show questions and answer inputs
