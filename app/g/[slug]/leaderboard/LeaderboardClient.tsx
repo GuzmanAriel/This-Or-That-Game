@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
+import Modal from '../../../components/Modal'
 import { getSupabaseClient } from '../../../../lib/supabase'
 
 type Props = { params: { slug: string } }
@@ -178,63 +179,55 @@ export default function LeaderboardClient({ params }: Props) {
       )}
 
       {selectedPlayer && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded max-w-xl w-full p-6">
-            <div className="flex items-start justify-between">
-              <h3 className="text-lg font-medium">Submission</h3>
-              <button className="text-sm text-gray-600" onClick={() => setSelectedPlayer(null)}>Close</button>
-            </div>
-            <div className="mt-4">
-              <div className="font-medium">{playersMap[selectedPlayer]?.first_name} {playersMap[selectedPlayer]?.last_name}</div>
-              <ul className="mt-3 space-y-2 text-sm">
-                {/* header row */}
-                <li className="flex items-center justify-between text-sm font-semibold">
-                  <div className="w-1/2"></div>
-                  <div className="w-1/6 text-center">Answer</div>
-                  <div className="w-1/6 text-center">Submission</div>
-                  <div className="w-1/12"></div>
+        <Modal title="Submission" onClose={() => setSelectedPlayer(null)} className="max-w-xl">
+          <div className="font-medium">{playersMap[selectedPlayer]?.first_name} {playersMap[selectedPlayer]?.last_name}</div>
+          <ul className="mt-3 space-y-2 text-sm">
+            {/* header row */}
+            <li className="flex items-center justify-between text-sm font-semibold">
+              <div className="w-1/2"></div>
+              <div className="w-1/6 text-center">Answer</div>
+              <div className="w-1/6 text-center">Submission</div>
+              <div className="w-1/12"></div>
+            </li>
+
+            {Object.values(questionsMap).sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0)).map((q: any, idx: number) => {
+              const answersMapPerPlayer = (playerAnswers[selectedPlayer] ?? {}) as Record<string, any>
+              const submitted = answersMapPerPlayer[q.id]?.answer_text ? String(answersMapPerPlayer[q.id].answer_text) : ''
+              const expectedLetter = q.correct_answer === 'A' ? 'A' : q.correct_answer === 'B' ? 'B' : String(q.correct_answer)
+              const expectedLabel = expectedLetter === 'A' ? (gameOptionA ?? 'Option A') : (gameOptionB ?? 'Option B')
+              const submittedLabel = submitted === 'A' ? (gameOptionA ?? 'Option A') : submitted === 'B' ? (gameOptionB ?? 'Option B') : submitted
+              const correct = submitted !== '' && String(submitted) === String(expectedLetter)
+              return (
+                <li key={q.id || idx} className="flex items-center justify-between">
+                  <div className="w-1/2">{q.prompt}</div>
+                  <div className="w-1/6 text-sm text-gray-700">{expectedLabel}</div>
+                  <div className="w-1/6 text-sm font-medium">{submittedLabel}</div>
+                  <div className="w-1/12">{correct ? <span className="text-green-600">✓</span> : <span className="text-red-600">✕</span>}</div>
                 </li>
+              )
+            })}
 
-                {Object.values(questionsMap).sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0)).map((q: any, idx: number) => {
-                  const answersMapPerPlayer = (playerAnswers[selectedPlayer] ?? {}) as Record<string, any>
-                  const submitted = answersMapPerPlayer[q.id]?.answer_text ? String(answersMapPerPlayer[q.id].answer_text) : ''
-                  const expectedLetter = q.correct_answer === 'A' ? 'A' : q.correct_answer === 'B' ? 'B' : String(q.correct_answer)
-                  const expectedLabel = expectedLetter === 'A' ? (gameOptionA ?? 'Option A') : (gameOptionB ?? 'Option B')
-                  const submittedLabel = submitted === 'A' ? (gameOptionA ?? 'Option A') : submitted === 'B' ? (gameOptionB ?? 'Option B') : submitted
-                  const correct = submitted !== '' && String(submitted) === String(expectedLetter)
-                  return (
-                    <li key={q.id || idx} className="flex items-center justify-between">
-                      <div className="w-1/2">{q.prompt}</div>
-                      <div className="w-1/6 text-sm text-gray-700">{expectedLabel}</div>
-                      <div className="w-1/6 text-sm font-medium">{submittedLabel}</div>
-                      <div className="w-1/12">{correct ? <span className="text-green-600">✓</span> : <span className="text-red-600">✕</span>}</div>
-                    </li>
-                  )
-                })}
-
-                {/* show tiebreaker if present */}
-                {(() => {
-                  const answersMapPerPlayer = (playerAnswers[selectedPlayer] ?? {}) as Record<string, any>
-                  const t = answersMapPerPlayer['tiebreaker']
-                  if (!t) return null
-                  const submitted = (t.answer_text || '').toString().trim()
-                  const expected = gameTiebreakerAnswer !== null && gameTiebreakerAnswer !== undefined ? String(gameTiebreakerAnswer) : null
-                  const correct = expected !== null && submitted !== '' && Number(submitted) === Number(expected)
-                  return (
-                    <li className="mt-3">
-                      <div className="font-medium">Tiebreaker</div>
-                      <div className="mt-2 flex items-center justify-between text-sm">
-                        <div className="">Expected: {expected ?? '—'}</div>
-                        <div className="font-medium">Submitted: {submitted}</div>
-                        <div>{correct ? <span className="text-green-600">✓</span> : <span className="text-red-600">✕</span>}</div>
-                      </div>
-                    </li>
-                  )
-                })()}
-              </ul>
-            </div>
-          </div>
-        </div>
+            {/* show tiebreaker if present */}
+            {(() => {
+              const answersMapPerPlayer = (playerAnswers[selectedPlayer] ?? {}) as Record<string, any>
+              const t = answersMapPerPlayer['tiebreaker']
+              if (!t) return null
+              const submitted = (t.answer_text || '').toString().trim()
+              const expected = gameTiebreakerAnswer !== null && gameTiebreakerAnswer !== undefined ? String(gameTiebreakerAnswer) : null
+              const correct = expected !== null && submitted !== '' && Number(submitted) === Number(expected)
+              return (
+                <li className="mt-3">
+                  <div className="font-medium">Tiebreaker</div>
+                  <div className="mt-2 flex items-center justify-between text-sm">
+                    <div className="">Expected: {expected ?? '—'}</div>
+                    <div className="font-medium">Submitted: {submitted}</div>
+                    <div>{correct ? <span className="text-green-600">✓</span> : <span className="text-red-600">✕</span>}</div>
+                  </div>
+                </li>
+              )
+            })()}
+          </ul>
+        </Modal>
       )}
     </div>
   )
