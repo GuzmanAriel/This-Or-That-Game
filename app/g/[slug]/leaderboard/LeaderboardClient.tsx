@@ -217,9 +217,9 @@ export default function LeaderboardClient({ params }: Props) {
               const correct = expected !== null && submitted !== '' && Number(submitted) === Number(expected)
               return (
                 <li className="mt-3">
-                  <div className="font-medium">Tiebreaker</div>
+                  <div className="font-bold">Tiebreaker</div>
                   <div className="mt-2 flex items-center justify-between text-sm">
-                    <div className="">Expected: {expected ?? '—'}</div>
+                    <div className="">Tiebreaker Answer: {expected ?? '—'}</div>
                     <div className="font-medium">Submitted: {submitted}</div>
                     <div>{correct ? <span className="text-green-600">✓</span> : <span className="text-red-600">✕</span>}</div>
                   </div>
