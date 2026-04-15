@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { getSupabaseClient } from '../../../../lib/supabase'
 import type { Game, Question } from '../../../../lib/types'
 import EmojiPicker from '../../../components/EmojiPicker'
+import Modal from '../../../components/Modal'
 import QuestionCard from '../../../components/QuestionCard'
 
 export default function AdminGameClient() {
@@ -623,38 +624,22 @@ export default function AdminGameClient() {
                 </div>
               </div>
               {showRemoveModal && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
-                  <div className="bg-white rounded max-w-md w-full p-6">
-                    <div className="flex items-start justify-between">
-                      <h3 className="text-lg font-medium">Remove tiebreaker</h3>
-                      <button className="text-sm text-gray-600" onClick={() => setShowRemoveModal(false)}>Close</button>
-                    </div>
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-700">Are you sure you want to remove the tiebreaker? This will clear the question and answer.</p>
-                      <div className="mt-4 flex justify-end space-x-2">
-                        <button className="btn-cancel" onClick={() => setShowRemoveModal(false)}>Cancel</button>
-                        <button className="btn-danger" onClick={async () => { setShowRemoveModal(false); await handleRemoveTiebreaker() }} disabled={tiebreakerRemoving}>{tiebreakerRemoving ? 'Removing…' : 'Remove'}</button>
-                      </div>
-                    </div>
+                <Modal title="Remove tiebreaker" onClose={() => setShowRemoveModal(false)}>
+                  <p className="text-sm text-gray-700">Are you sure you want to remove the tiebreaker? This will clear the question and answer.</p>
+                  <div className="mt-4 flex justify-end space-x-2">
+                    <button className="btn-cancel" onClick={() => setShowRemoveModal(false)}>Cancel</button>
+                    <button className="btn-danger" onClick={async () => { setShowRemoveModal(false); await handleRemoveTiebreaker() }} disabled={tiebreakerRemoving}>{tiebreakerRemoving ? 'Removing…' : 'Remove'}</button>
                   </div>
-                </div>
+                </Modal>
               )}
               {showDeleteModal && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
-                  <div className="bg-white rounded max-w-md w-full p-6">
-                    <div className="flex items-start justify-between">
-                      <h3 className="text-lg font-medium">Delete game</h3>
-                      <button className="text-sm text-gray-600" onClick={() => setShowDeleteModal(false)}>Close</button>
-                    </div>
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-700">Are you sure you want to delete this game? This will permanently remove the game and all associated questions.</p>
-                      <div className="mt-4 flex justify-end space-x-2">
-                        <button className="btn-cancel" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                        <button className="btn-danger" onClick={async () => { setShowDeleteModal(false); await handleDeleteGame() }} disabled={deleting}>{deleting ? 'Deleting…' : 'Delete'}</button>
-                      </div>
-                    </div>
+                <Modal title="Delete game" onClose={() => setShowDeleteModal(false)}>
+                  <p className="text-sm text-gray-700">Are you sure you want to delete this game? This will permanently remove the game and all associated questions.</p>
+                  <div className="mt-4 flex justify-end space-x-2">
+                    <button className="btn-cancel" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                    <button className="btn-danger" onClick={async () => { setShowDeleteModal(false); await handleDeleteGame() }} disabled={deleting}>{deleting ? 'Deleting…' : 'Delete'}</button>
                   </div>
-                </div>
+                </Modal>
               )}
             </div>
           </div>

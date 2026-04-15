@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { getSupabaseClient } from '../../../lib/supabase'
 import type { Game, Question } from '../../../lib/types'
 import QuestionCard from '../../components/QuestionCard'
+import Modal from '../../components/Modal'
 
 // Player / Answer types used locally in the UI
 interface Player {
@@ -408,16 +409,13 @@ export default function GameClient({ params }: Props) {
   return (
     <div className="container mx-auto p-8 max-w-3xl" data-page="game">
       {showSubmittedModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black opacity-40" onClick={() => setShowSubmittedModal(false)} />
-          <div role="dialog" aria-modal="true" className="relative bg-white rounded-lg p-6 shadow-lg w-80 text-center text-green-700">
-            <div className="text-2xl font-bold">Answers Submitted</div>
-            <div className="mt-2 text-sm">Thanks — your answers were submitted successfully.</div>
-            <div className="mt-4">
-              <button onClick={() => setShowSubmittedModal(false)} className="px-3 py-1 bg-green-600 text-white rounded-md">Close</button>
-            </div>
+        <Modal ariaLabel="Answers submitted" onClose={() => setShowSubmittedModal(false)}>
+          <div className="text-2xl font-bold text-green-700">Answers Submitted</div>
+          <div className="mt-2 text-sm text-green-700">Thanks — your answers were submitted successfully.</div>
+          <div className="mt-4">
+            <button onClick={() => setShowSubmittedModal(false)} className="px-3 py-1 bg-green-600 text-white rounded-md">Close</button>
           </div>
-        </div>
+        </Modal>
       )}
       <h2 className="text-5xl font-bold font-heading">Play: {game.title}</h2>
       <div className="mt-3 flex items-center justify-between">
