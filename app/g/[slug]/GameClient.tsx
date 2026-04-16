@@ -234,6 +234,178 @@ export default function GameClient({ params }: Props) {
       return (data as any).id as string
     }, [supabase])
 
+    // Handlers must be declared unconditionally (before any early returns)
+    const handleJoin = useCallback(async (e: React.FormEvent) => {
+      e.preventDefault()
+      if (!game) return
+      const form = e.target as HTMLFormElement
+      const f = new FormData(form)
+      const first_name = String(f.get('first_name') || '').trim()
+      const last_name = String(f.get('last_name') || '').trim()
+      if (!first_name || !last_name) {
+        // TODO: replace alert with inline UI in follow-up
+        return alert('Please enter your first and last name')
+      }
+
+      setPlayerLoading(true)
+      try {
+        // find players with the same exact name for this game
+        const { data: found } = await supabase
+          .from('players')
+          .select('id,game_id,first_name,last_name,created_at')
+          .eq('game_id', game.id)
+          .eq('first_name', first_name)
+          .eq('last_name', last_name)
+
+        if (found && (found as any[]).length >= 1) {
+          // ask user to confirm which entry to use (or create new)
+          setPlayerMatches(found as any[])
+          setPlayerLoading(false)
+          return
+        }
+
+        // No existing matches — create a new player
+        const pid = await createPlayer(game.id, first_name, last_name)
+
+        setPlayerId(pid)
+        try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
+      } catch (err: any) {
+        console.error('join error', err)
+        // TODO: replace alert with inline UI in follow-up
+        alert(err?.message || 'Failed to join')
+      } finally {
+        setPlayerLoading(false)
+      }
+    }, [game, createPlayer, supabase])
+
+    const handleSelectPlayerFromMatches = useCallback((pid: string) => {
+      if (!game) return
+      setPlayerId(pid)
+      try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
+      setPlayerMatches(null)
+    }, [game])
+
+    const handleCreateNewPlayerFromMatches = useCallback(async () => {
+      if (!game) return
+      // create new player even though name matches existing rows
+      setPlayerLoading(true)
+      try {
+        const form = document.querySelector('form') as HTMLFormElement | null
+        const f = form ? new FormData(form) : null
+        const first_name = String(f?.get('first_name') || '').trim()
+        const last_name = String(f?.get('last_name') || '').trim()
+        const pid = await createPlayer(game.id, first_name, last_name)
+        setPlayerId(pid)
+        try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
+        setPlayerMatches(null)
+      } catch (err: any) {
+        console.error('create new player error', err)
+        // TODO: replace alert with inline UI in follow-up
+        alert(err?.message ?? 'Failed to create player')
+      } finally {
+        setPlayerLoading(false)
+      }
+    }, [game, createPlayer])
+
+    const handleAnswerSubmit = useCallback(async (questionId: string) => {
+      if (!game || !playerId) return
+      if (!game.is_open) {
+        // TODO: replace alert with inline UI in follow-up
+        return alert('Submissions are closed for this game')
+      }
+      const state = answersState[questionId]
+      if (!state || state.value === '') return alert('Please select an answer')
+
+      // set loading for this question
+      setAnswersState(prev => ({ ...prev, [questionId]: { ...prev[questionId], loading: true, error: undefined } }))
+      try {
+        const payload: AnswerRecord = {
+          game_id: game.id,
+          player_id: playerId,
+          question_id: questionId,
+          answer_text: state.value as string
+        }
+        const { error } = await supabase.from('answers').insert(payload)
+        if (error) throw error
+        setAnswersState(prev => ({ ...prev, [questionId]: { ...prev[questionId], loading: false, saved: true } }))
+        try { localStorage.removeItem(`answersDraft:${game.id}:${playerId}`) } catch (e) {}
+      } catch (err: any) {
+        setAnswersState(prev => ({ ...prev, [questionId]: { ...prev[questionId], loading: false, error: err?.message ?? 'Submit failed' } }))
+      }
+    }, [game, playerId, answersState, supabase])
+
+    const handleSubmitAll = useCallback(async (e?: React.FormEvent) => {
+      // called as form submit handler: prevent default
+      try { e?.preventDefault?.() } catch (err) {}
+      if (!game || !playerId) return
+      if (!game.is_open) return alert('Submissions are closed for this game')
+      // ensure all questions have a selected answer (we don't consider saved flag here)
+      const missing = questions.filter(q => !(answersState[q.id]?.value))
+      if (missing.length > 0) {
+        // build validation errors map
+        const errs: Record<string, string> = {}
+        missing.forEach(q => { errs[q.id] = 'Please select an option.' })
+        setValidationErrors(errs)
+        setValidationSummary(`You still have ${missing.length} question${missing.length === 1 ? '' : 's'} left to answer.`)
+        // Move focus to the error summary (rendered inside the form) after render
+        try {
+          setTimeout(() => {
+            try { errorSummaryRef.current?.focus() } catch (e) {}
+          }, 50)
+        } catch (err) {}
+        return
+      }
+
+      // if a tiebreaker prompt exists, ensure it's numeric (if not yet saved)
+      if (game.tiebreaker_prompt && !tiebreakerState.saved) {
+        const val = (tiebreakerState.value || '').toString().trim()
+        if (!val) return alert('Please enter your tiebreaker answer')
+        if (!/^-?\d+(?:\.\d+)?$/.test(val)) return alert('Tiebreaker answer must be a number')
+      }
+
+      setSubmittingAll(true)
+      try {
+        const payloads: any[] = []
+        for (const q of questions) {
+          const st = answersState[q.id]
+          if (!st) continue
+          // skip if already saved
+          if (st.saved) continue
+          payloads.push({ game_id: game.id, player_id: playerId, question_id: q.id, answer_text: st.value })
+        }
+        if (game.tiebreaker_prompt && !tiebreakerState.saved) {
+          payloads.push({ game_id: game.id, player_id: playerId, question_id: null, answer_text: (tiebreakerState.value || '').toString().trim() })
+        }
+
+        if (payloads.length === 0) {
+          setSubmittingAll(false)
+          return alert('Nothing to submit')
+        }
+
+        const { error } = await supabase.from('answers').insert(payloads)
+        if (error) throw error
+
+        // show a brief success modal
+        try {
+          setShowSubmittedModal(true)
+          setTimeout(() => setShowSubmittedModal(false), 5000)
+        } catch (e) {}
+
+        // mark saved
+        const newAnswersState = { ...answersState }
+        for (const q of questions) {
+          if (newAnswersState[q.id]) newAnswersState[q.id] = { ...newAnswersState[q.id], saved: true, loading: false }
+        }
+        setAnswersState(newAnswersState)
+        if (game.tiebreaker_prompt) setTiebreakerState(prev => ({ ...prev, saved: true, loading: false }))
+        try { localStorage.removeItem(`answersDraft:${game.id}:${playerId}`) } catch (e) {}
+      } catch (err: any) {
+        alert(err?.message ?? 'Submit failed')
+      } finally {
+        setSubmittingAll(false)
+      }
+    }, [game, playerId, questions, answersState, tiebreakerState, supabase])
+
   if (loading) return <div className="p-8">Loading…</div>
   if (!game) return <div className="p-8">Game not found</div>
 
@@ -255,172 +427,13 @@ export default function GameClient({ params }: Props) {
     )
   }
 
-  async function handleJoin(e: React.FormEvent) {
-    e.preventDefault()
-    if (!game) return
-    const form = e.target as HTMLFormElement
-    const f = new FormData(form)
-    const first_name = String(f.get('first_name') || '').trim()
-    const last_name = String(f.get('last_name') || '').trim()
-    if (!first_name || !last_name) return alert('Please enter your first and last name')
-
-    setPlayerLoading(true)
-    try {
-      // find players with the same exact name for this game
-      const { data: found } = await supabase
-        .from('players')
-        .select('id,game_id,first_name,last_name,created_at')
-        .eq('game_id', game.id)
-        .eq('first_name', first_name)
-        .eq('last_name', last_name)
-
-      if (found && (found as any[]).length >= 1) {
-        // ask user to confirm which entry to use (or create new)
-        setPlayerMatches(found as any[])
-        setPlayerLoading(false)
-        return
-      }
-
-      // No existing matches — create a new player
-      const pid = await createPlayer(game.id, first_name, last_name)
-
-      setPlayerId(pid)
-      try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
-    } catch (err: any) {
-      console.error('join error', err)
-      alert(err?.message || 'Failed to join')
-    } finally {
-      setPlayerLoading(false)
-    }
-  }
-
-  function handleSelectPlayerFromMatches(pid: string) {
-    if (!game) return
-    setPlayerId(pid)
-    try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
-    setPlayerMatches(null)
-  }
-
-  async function handleCreateNewPlayerFromMatches() {
-    if (!game) return
-    // create new player even though name matches existing rows
-    setPlayerLoading(true)
-    try {
-      const form = document.querySelector('form') as HTMLFormElement | null
-      const f = form ? new FormData(form) : null
-      const first_name = String(f?.get('first_name') || '').trim()
-      const last_name = String(f?.get('last_name') || '').trim()
-      const pid = await createPlayer(game.id, first_name, last_name)
-      setPlayerId(pid)
-      try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
-      setPlayerMatches(null)
-    } catch (err: any) {
-      console.error('create new player error', err)
-      alert(err?.message ?? 'Failed to create player')
-    } finally {
-      setPlayerLoading(false)
-    }
-  }
-
-  async function handleAnswerSubmit(questionId: string) {
-    if (!game || !playerId) return
-    if (!game.is_open) return alert('Submissions are closed for this game')
-    const state = answersState[questionId]
-    if (!state || state.value === '') return alert('Please select an answer')
-
-    // set loading for this question
-    setAnswersState(prev => ({ ...prev, [questionId]: { ...prev[questionId], loading: true, error: undefined } }))
-    try {
-      const payload: AnswerRecord = {
-        game_id: game.id,
-        player_id: playerId,
-        question_id: questionId,
-        answer_text: state.value as string
-      }
-      const { error } = await supabase.from('answers').insert(payload)
-      if (error) throw error
-      setAnswersState(prev => ({ ...prev, [questionId]: { ...prev[questionId], loading: false, saved: true } }))
-      try { localStorage.removeItem(`answersDraft:${game.id}:${playerId}`) } catch (e) {}
-    } catch (err: any) {
-      setAnswersState(prev => ({ ...prev, [questionId]: { ...prev[questionId], loading: false, error: err?.message ?? 'Submit failed' } }))
-    }
-  }
+  
 
   async function handleTiebreakerSubmit() {
     // Tiebreaker submission is handled by Submit All; keep function empty to avoid accidental usage.
   }
 
-  async function handleSubmitAll(e?: React.FormEvent) {
-    // called as form submit handler: prevent default
-    try { e?.preventDefault?.() } catch (err) {}
-    if (!game || !playerId) return
-    if (!game.is_open) return alert('Submissions are closed for this game')
-    // ensure all questions have a selected answer (we don't consider saved flag here)
-    const missing = questions.filter(q => !(answersState[q.id]?.value))
-    if (missing.length > 0) {
-      // build validation errors map
-      const errs: Record<string, string> = {}
-      missing.forEach(q => { errs[q.id] = 'Please select an option.' })
-      setValidationErrors(errs)
-      setValidationSummary(`You still have ${missing.length} question${missing.length === 1 ? '' : 's'} left to answer.`)
-      // Move focus to the error summary (rendered inside the form) after render
-      try {
-        setTimeout(() => {
-          try { errorSummaryRef.current?.focus() } catch (e) {}
-        }, 50)
-      } catch (err) {}
-      return
-    }
-
-    // if a tiebreaker prompt exists, ensure it's numeric (if not yet saved)
-    if (game.tiebreaker_prompt && !tiebreakerState.saved) {
-      const val = (tiebreakerState.value || '').toString().trim()
-      if (!val) return alert('Please enter your tiebreaker answer')
-      if (!/^-?\d+(?:\.\d+)?$/.test(val)) return alert('Tiebreaker answer must be a number')
-    }
-
-    setSubmittingAll(true)
-    try {
-      const payloads: any[] = []
-      for (const q of questions) {
-        const st = answersState[q.id]
-        if (!st) continue
-        // skip if already saved
-        if (st.saved) continue
-        payloads.push({ game_id: game.id, player_id: playerId, question_id: q.id, answer_text: st.value })
-      }
-      if (game.tiebreaker_prompt && !tiebreakerState.saved) {
-        payloads.push({ game_id: game.id, player_id: playerId, question_id: null, answer_text: (tiebreakerState.value || '').toString().trim() })
-      }
-
-      if (payloads.length === 0) {
-        setSubmittingAll(false)
-        return alert('Nothing to submit')
-      }
-
-      const { error } = await supabase.from('answers').insert(payloads)
-      if (error) throw error
-
-      // show a brief success modal
-      try {
-        setShowSubmittedModal(true)
-        setTimeout(() => setShowSubmittedModal(false), 5000)
-      } catch (e) {}
-
-      // mark saved
-      const newAnswersState = { ...answersState }
-      for (const q of questions) {
-        if (newAnswersState[q.id]) newAnswersState[q.id] = { ...newAnswersState[q.id], saved: true, loading: false }
-      }
-      setAnswersState(newAnswersState)
-      if (game.tiebreaker_prompt) setTiebreakerState(prev => ({ ...prev, saved: true, loading: false }))
-      try { localStorage.removeItem(`answersDraft:${game.id}:${playerId}`) } catch (e) {}
-    } catch (err: any) {
-      alert(err?.message ?? 'Submit failed')
-    } finally {
-      setSubmittingAll(false)
-    }
-  }
+  
 
   // UI
   return (

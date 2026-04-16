@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import Modal from '../../../components/Modal'
 import { getSupabaseClient } from '../../../../lib/supabase'
 
@@ -24,14 +24,16 @@ export default function LeaderboardClient({ params }: Props) {
   const [gameTiebreakerAnswer, setGameTiebreakerAnswer] = useState<number | null>(null)
   const [gameTitle, setGameTitle] = useState<string>('')
 
+  const mountedRef = useRef(true)
+
   useEffect(() => {
-    let mounted = true
+    mountedRef.current = true
     async function load() {
       setLoading(true)
       setError(null)
       try {
         // fetch game, players, questions, answers and current user
-        const { data: gData, error: gErr } = await supabase.from('games').select('id,title,created_by,option_a_label,option_b_label,tiebreaker_answer,theme').eq('slug', slug).limit(1).maybeSingle()
+        const { data: gData, error: gErr } = await supabase.from('games').select('id,title,created_by,option_a_label,option_b_label,tiebreaker_answer,theme').eq('slug', slug).maybeSingle()
         if (gErr) throw gErr
         if (!gData) {
           setError('Game not found')
@@ -54,7 +56,7 @@ export default function LeaderboardClient({ params }: Props) {
           supabase.auth.getUser()
         ])
 
-        if (!mounted) return
+        if (!mountedRef.current) return
 
         const pMap: Record<string, any> = {}
         ;((pData as any) ?? []).forEach((p: any) => { pMap[p.id] = p })
@@ -146,14 +148,14 @@ export default function LeaderboardClient({ params }: Props) {
         setIsAdmin(Boolean(user && user.id === createdBy))
       } catch (err: any) {
         console.error(err)
-        if (!mounted) return
+        if (!mountedRef.current) return
         setError(err?.message ?? 'Failed to load leaderboard')
       } finally {
-        if (mounted) setLoading(false)
+        if (mountedRef.current) setLoading(false)
       }
     }
     load()
-    return () => { mounted = false; try { document.body.dataset.theme = 'default' } catch (e) {} }
+    return () => { mountedRef.current = false; try { document.body.dataset.theme = 'default' } catch (e) {} }
   }, [slug, supabase])
 
   if (loading) return <div className="p-8">Loading…</div>
