@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef, useState, useMemo } from 'react'
+import Link from 'next/link'
 import { getSupabaseClient } from '../../../lib/supabase'
 import type { Game, Question } from '../../../lib/types'
 import QuestionCard from '../../components/QuestionCard'
@@ -218,7 +219,7 @@ export default function GameClient({ params }: Props) {
           <div className="mt-2">Submissions are no longer accepted. You can still view the leaderboard below.</div>
         </div>
         <div className="mt-6">
-          <a href={`/g/${game.slug}/leaderboard`}>View Leaderboard</a>
+          <Link href={`/g/${game.slug}/leaderboard`}>View Leaderboard</Link>
         </div>
       </div>
     )
@@ -664,21 +665,21 @@ export default function GameClient({ params }: Props) {
             )}
             </div>
 
-            <div className="mt-6 flex items-center space-x-4">
-              {game.is_open && (
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={submittingAll}
-                >
-                  {submittingAll ? 'Submitting…' : 'Submit All Answers'}
-                </button>
-              )}
+              <div className="mt-6 flex items-center space-x-4">
+                {game.is_open && (
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={submittingAll}
+                  >
+                    {submittingAll ? 'Submitting…' : 'Submit All Answers'}
+                  </button>
+                )}
 
-              {questions.length > 0 && (
-                <a href={`/g/${game.slug}/leaderboard`} className="btn-secondary">View Leaderboard</a>
-              )}
-            </div>
+                {questions.length > 0 && (
+                  <Link href={`/g/${game.slug}/leaderboard`} className="btn-secondary">View Leaderboard</Link>
+                )}
+              </div>
           </form>
         </section>
       )}

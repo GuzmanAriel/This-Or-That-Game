@@ -180,8 +180,8 @@ export default function AuthBar() {
                 <ul className="space-y-2">
                   {playerGames.map((g) => (
                     <li key={g.id} className="flex items-center justify-between">
-                      <a href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</a>
-                    </li>
+                        <Link href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</Link>
+                      </li>
                   ))}
                 </ul>
               </div>
@@ -196,9 +196,9 @@ export default function AuthBar() {
                 <div className="text-md mb-2 font-bold text-gray-500">Created by you</div>
                 <ul className="space-y-2">
                   {adminGames.map((g) => (
-                    <li key={g.id} className="flex items-center justify-between">
-                      <a href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</a>
-                      <a href={`/admin/g/${g.slug}`} className="text-xs text-gray-600 hover:underline">Manage</a>
+                      <li key={g.id} className="flex items-center justify-between">
+                      <Link href={`/g/${g.slug}`} className="text-sm font-semibold">{g.title}</Link>
+                      <Link href={`/admin/g/${g.slug}`} className="text-xs text-gray-600 hover:underline">Manage</Link>
                     </li>
                   ))}
                 </ul>
@@ -214,9 +214,9 @@ export default function AuthBar() {
                 <div className="text-xs text-gray-500 mb-2">Games you've submitted to</div>
                 <ul className="space-y-2">
                   {submittedGames.map((g) => (
-                    <li key={g.id} className="flex items-center justify-between">
-                      <a href={`/g/${g.slug}`} className="text-sm">{g.title}</a>
-                      <a href={`/g/${g.slug}/leaderboard`} className="text-xs text-gray-600 hover:underline">Leaderboard</a>
+                      <li key={g.id} className="flex items-center justify-between">
+                      <Link href={`/g/${g.slug}`} className="text-sm">{g.title}</Link>
+                      <Link href={`/g/${g.slug}/leaderboard`} className="text-xs text-gray-600 hover:underline">Leaderboard</Link>
                     </li>
                   ))}
                 </ul>

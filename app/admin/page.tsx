@@ -389,10 +389,10 @@ export default function AdminPage() {
                   <div className="rounded-md border p-3 bg-green-50 text-sm">
                     Game created — game code (slug): <strong>{success.slug}</strong>
                     <div className="mt-2">
-                      <a href={`/g/${success.slug}`}>/g/{success.slug}</a>
+                      <Link href={`/g/${success.slug}`}>/g/{success.slug}</Link>
                     </div>
                     <div>
-                      <a href={`/g/${success.slug}/leaderboard`}>/g/{success.slug}/leaderboard</a>
+                      <Link href={`/g/${success.slug}/leaderboard`}>/g/{success.slug}/leaderboard</Link>
                     </div>
                     <div className="mt-2 text-xs text-gray-600">Share the above link or give players the game code (slug) so they can join.</div>
                   </div>
@@ -413,15 +413,15 @@ export default function AdminPage() {
                 <ul className="mt-4 space-y-3">
                   {games.map((g) => (
                     <Card
-                      key={g.id}
-                      id={g.id}
-                      title={<a href={`/g/${g.slug}`} className="font-medium">{g.title}</a>}
-                      subtitle={`/${g.slug}`}
-                      links={[
-                          { text: 'Manage', href: `/admin/g/${g.slug}`, style: 'btn-primary', linkTitle: `Manage ${g.title}` },
-                          { text: 'Leaderboard', href: `/g/${g.slug}/leaderboard`, style: 'btn-primary', linkTitle: `Leaderboard for ${g.title}` }
-                      ]}
-                    />
+                        key={g.id}
+                        id={g.id}
+                        title={<Link href={`/g/${g.slug}`} className="font-medium">{g.title}</Link>}
+                        subtitle={`/${g.slug}`}
+                        links={[
+                            { text: 'Manage', href: `/admin/g/${g.slug}`, style: 'btn-primary', linkTitle: `Manage ${g.title}` },
+                            { text: 'Leaderboard', href: `/g/${g.slug}/leaderboard`, style: 'btn-primary', linkTitle: `Leaderboard for ${g.title}` }
+                        ]}
+                      />
                   ))}
                 </ul>
               )}
