@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useRef, useMemo } from 'react'
+import Link from 'next/link'
 import { getSupabaseClient } from '../../lib/supabaseClient'
 import MobileMenu from './MobileMenu'
 
@@ -160,14 +161,14 @@ export default function AuthBar() {
         <a href="#main-content" className="w-full mb-2 p-2 z-50 absolute top-2 text-md transform -translate-y-12 focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:relative focus:top-0">Skip to main content</a>
         {/* Brand / home link */}
           <div className="flex items-center space-x-4">
-          <a href="/" className="text-2xl font-semibold tracking-widest">🎉 This OR That</a>
+          <Link href="/" className="text-2xl font-semibold tracking-widest">🎉 This OR That</Link>
         </div>
 
         {/* Navigation / menus */}
           <div className="flex items-center space-x-6 desktop-nav">
-            <a href="/" className="text-md font-bold tracking-wider hover:underline">Home</a>
+            <Link href="/" className="text-md font-bold tracking-wider hover:underline">Home</Link>
             {isAdmin ? (
-              <a href="/admin" className="text-md font-bold tracking-wider hover:underline">Admin</a>
+              <Link href="/admin" className="text-md font-bold tracking-wider hover:underline">Admin</Link>
             ) : null}
 
           {/* Player games (from localStorage) - shown even when not signed in */}
@@ -227,15 +228,15 @@ export default function AuthBar() {
             {user ? (
               <>
                 {!isAdmin && (
-                  <a href="/signup" className="text-lg font-bold">Sign up</a>
+                  <Link href="/signup" className="text-lg font-bold">Sign up</Link>
                 )}
                 <button onClick={handleSignOut} className="text-lg font-bold">Log out</button>
               </>
             ) : (
               <>
-                <a href="/admin" className="text-lg font-bold">Sign in / Admin</a>
+                <Link href="/admin" className="text-lg font-bold">Sign in / Admin</Link>
                 {!isAdmin && (
-                  <a href="/signup" className="text-lg font-bold">Sign up</a>
+                  <Link href="/signup" className="text-lg font-bold">Sign up</Link>
                 )}
               </>
             )}

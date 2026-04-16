@@ -1,11 +1,18 @@
 
 "use client"
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
+import Link from 'next/link'
 import { getSupabaseClient } from '../../lib/supabaseClient'
 
 export default function SignUpPage() {
   const supabase = useMemo(() => getSupabaseClient(), [])
+  const isMounted = useRef(true)
+
+  useEffect(() => {
+    isMounted.current = true
+    return () => { isMounted.current = false }
+  }, [])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,21 +25,42 @@ export default function SignUpPage() {
     setLoading(true)
     setMessage(null)
     setError(null)
+    const emailTrim = email.trim()
+    const pass = password
+
+    if (!emailTrim) {
+      if (isMounted.current) {
+        setError('Please enter your email')
+        setLoading(false)
+      }
+      return
+    }
+
+    if ((pass || '').length < 8) {
+      if (isMounted.current) {
+        setError('Password must be at least 8 characters')
+        setLoading(false)
+      }
+      return
+    }
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      const { data, error } = await supabase.auth.signUp({ email: emailTrim, password: pass })
+      if (!isMounted.current) return
       if (error) {
-        setError(error.message)
+        if (isMounted.current) setError(error.message)
         return
       }
       // When email confirmations are enabled Supabase will send a confirmation link.
       // Show a friendly message and clear inputs.
-      setMessage('Check your email for a confirmation link (if enabled). You can then sign in at /admin.')
-      setEmail('')
-      setPassword('')
+      if (isMounted.current) {
+        setMessage('Check your email for a confirmation link (if enabled). You can then sign in at /admin.')
+        setEmail('')
+        setPassword('')
+      }
     } catch (err: any) {
-      setError(err?.message ?? 'Sign up failed')
+      if (isMounted.current) setError(err?.message ?? 'Sign up failed')
     } finally {
-      setLoading(false)
+      if (isMounted.current) setLoading(false)
     }
   }
 
@@ -65,8 +93,9 @@ export default function SignUpPage() {
           />
         </div>
 
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-        {message && <p className="mt-2 text-sm text-green-600">{message}</p>}
+        <div role="status" aria-live="polite" className="mt-2">
+          {error ? <p className="text-sm text-red-600">{error}</p> : message ? <p className="text-sm text-green-600">{message}</p> : null}
+        </div>
 
         <div className="mt-6">
           <button
@@ -79,7 +108,7 @@ export default function SignUpPage() {
         </div>
 
         <p className="mt-4 text-sm">
-          Already have an account? <a href="/admin">Sign in</a>
+          Already have an account? <Link href="/admin">Sign in</Link>
         </p>
       </form>
     </div>

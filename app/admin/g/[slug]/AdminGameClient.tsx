@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useRef, useMemo } from 'react'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { getSupabaseClient } from '../../../../lib/supabase'
 import type { Game, Question } from '../../../../lib/types'
@@ -575,8 +576,8 @@ export default function AdminGameClient() {
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                           <button onClick={handleCopyUrl} className="btn-primary" aria-label="Copy Game URL">Copy URL</button>
-                          <a className="btn-primary" href={`/g/${game.slug}`} aria-label="Go to Game">Game</a>
-                          <a className="btn-primary" href={`/g/${game.slug}/leaderboard`} aria-label="Go to Leaderboard">Leaderboard</a>
+                      <Link className="btn-primary" href={`/g/${game.slug}`} aria-label="Go to Game">Game</Link>
+                      <Link className="btn-primary" href={`/g/${game.slug}/leaderboard`} aria-label="Go to Leaderboard">Leaderboard</Link>
                           {copiedUrl && <span className="ml-2 text-sm text-green-600">Copied!</span>}
                         </div>
               </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useMemo } from 'react'
+import Link from 'next/link'
 import EmojiPicker from '../components/EmojiPicker'
 import Card from '../components/Card'
 import { getSupabaseClient } from '../../lib/supabaseClient'
@@ -246,7 +247,7 @@ export default function AdminPage() {
 
           {/* new: link to sign up page */}
           <p className="mt-4 text-sm">
-            Don't have an account? <a href="/signup">Create one</a>
+            Don't have an account? <Link href="/signup">Create one</Link>
           </p>
         </form>
       ) : (

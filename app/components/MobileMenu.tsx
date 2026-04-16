@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 
 type Props = {
   open: boolean
@@ -107,8 +108,8 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
       data-component="mobile-menu"
     >
       <nav className="p-6" aria-label="Mobile menu">
-        <a href="/" onClick={onClose} className="block text-xl font-semibold">Home</a>
-        {isAdmin && <a href="/admin" onClick={onClose} className="block text-xl font-semibold mt-6">Admin</a>}
+        <Link href="/" onClick={onClose} className="block text-xl font-semibold">Home</Link>
+        {isAdmin && <Link href="/admin" onClick={onClose} className="block text-xl font-semibold mt-6">Admin</Link>}
 
         {playerGames.length > 0 && (
           <div>
@@ -126,7 +127,7 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
             </button>
             <ul id="player-games-list" role="region" aria-labelledby="player-games-toggle" className="pl-3 mt-3 space-y-2" hidden={!playerOpen}>
               {playerGames.map((g) => (
-                <li key={g.id}><a href={`/g/${g.slug}`} onClick={onClose} className="block text-xl font-semibold mt-3">{g.title}</a></li>
+                <li key={g.id}><Link href={`/g/${g.slug}`} onClick={onClose} className="block text-xl font-semibold mt-3">{g.title}</Link></li>
               ))}
             </ul>
           </div>
@@ -148,7 +149,7 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
             </button>
             <ul id="your-games-list" role="region" aria-labelledby="your-games-toggle" className="pl-3 mt-3 space-y-1" hidden={!adminOpen}>
               {adminGames.map((g) => (
-                <li key={g.id}><a href={`/g/${g.slug}`} onClick={onClose} className="block font-semibold text-xl mt-3">{g.title}</a></li>
+                <li key={g.id}><Link href={`/g/${g.slug}`} onClick={onClose} className="block font-semibold text-xl mt-3">{g.title}</Link></li>
               ))}
             </ul>
           </div>
@@ -170,7 +171,7 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
             </button>
             <ul id="submitted-games-list" role="region" aria-labelledby="submitted-games-toggle" className="pl-3 mt-3 space-y-1" hidden={!submittedOpen}>
               {submittedGames.map((g) => (
-                <li key={g.id}><a href={`/g/${g.slug}`} onClick={onClose} className="block font-bold">{g.title}</a></li>
+                <li key={g.id}><Link href={`/g/${g.slug}`} onClick={onClose} className="block font-bold">{g.title}</Link></li>
               ))}
             </ul>
           </div>
@@ -181,8 +182,8 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
             <button onClick={() => { onSignOut(); onClose(); }} className="block w-full text-left font-semibold text-xl">Log out</button>
           ) : (
             <>
-              <a href="/admin" onClick={onClose} className="block font-semibold text-xl">Sign in / Admin</a>
-              <a href="/signup" onClick={onClose} className="block font-semibold text-xl">Sign up</a>
+              <Link href="/admin" onClick={onClose} className="block font-semibold text-xl">Sign in / Admin</Link>
+              <Link href="/signup" onClick={onClose} className="block font-semibold text-xl">Sign up</Link>
             </>
           )}
         </div>
