@@ -105,7 +105,11 @@ export async function POST(request: Request) {
     created_by: userData.user.id
   }
 
-  const { data: inserted, error: insertErr } = await supabase.from('games').insert(insertPayload).select().single()
+  const { data: inserted, error: insertErr } = await supabase
+    .from('games')
+    .insert(insertPayload)
+    .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_at,created_by')
+    .single()
   if (insertErr) {
     // Return DB error message to help debugging (safe in dev).
     console.error('insertErr', insertErr)

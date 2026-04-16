@@ -290,7 +290,7 @@ export default function GameClient({ params }: Props) {
       const { data: inserted, error } = await supabase
         .from('players')
         .insert({ game_id: game.id, first_name, last_name })
-        .select()
+        .select('id,game_id,first_name,last_name,created_at')
         .limit(1)
         .maybeSingle()
       if (error) throw error
