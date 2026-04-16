@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import Modal from '../../../components/Modal'
 import { getSupabaseClient } from '../../../../lib/supabase'
 
@@ -8,7 +8,7 @@ type Props = { params: { slug: string } }
 
 export default function LeaderboardClient({ params }: Props) {
   const { slug } = params
-  const supabase = getSupabaseClient()
+  const supabase = useMemo(() => getSupabaseClient(), [])
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

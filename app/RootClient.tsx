@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { getSupabaseClient } from '../lib/supabaseClient'
 
@@ -9,21 +9,29 @@ export default function RootClient({ children }: { children: React.ReactNode }) 
   const [authLoaded, setAuthLoaded] = useState(false)
   const [visible, setVisible] = useState(true)
   const pathname = usePathname()
+  const isMounted = useRef(true)
+
+  // Memoize supabase client so we don't re-create it across renders/effects
+  const supabase = useMemo(() => getSupabaseClient(), [])
+
+  // Cache game titles by slug to avoid repeated network calls
+  const titleCache = useRef<Map<string, string>>(new Map())
 
   useEffect(() => {
     // detect body dataset.theme changes
     try {
-      const check = () => { 
+      const check = () => {
         const t = document.body?.dataset?.theme
-        if (t && t !== 'default') {
-          setThemeLoaded(true)
-        }
+        if (t && t !== 'default') setThemeLoaded(true)
       }
       check()
-      const mo = new MutationObserver(() => check())
-      if (document.body) mo.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] })
+      let mo: MutationObserver | null = null
+      if (document.body) {
+        mo = new MutationObserver(() => check())
+        mo.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] })
+      }
       const tmo = setTimeout(() => setThemeLoaded(true), 2000) // fallback
-      return () => { mo.disconnect(); clearTimeout(tmo) }
+      return () => { if (mo) mo.disconnect(); clearTimeout(tmo) }
     } catch (e) {
       setThemeLoaded(true)
     }
@@ -31,18 +39,18 @@ export default function RootClient({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     // check supabase auth state to know when auth is ready
-    let mounted = true
-    const supabase = getSupabaseClient()
-    ;(async () => {
+    isMounted.current = true
+    const checkAuth = async () => {
       try {
         await supabase.auth.getUser()
       } catch (e) {
         // ignore
       }
-      if (mounted) setAuthLoaded(true)
-    })()
-    const t = setTimeout(() => { if (mounted) setAuthLoaded(true) }, 3000)
-    return () => { mounted = false; clearTimeout(t) }
+      if (isMounted.current) setAuthLoaded(true)
+    }
+    checkAuth()
+    const t = setTimeout(() => { if (isMounted.current) setAuthLoaded(true) }, 3000)
+    return () => { isMounted.current = false; clearTimeout(t) }
   }, [])
 
   useEffect(() => {
@@ -79,26 +87,32 @@ export default function RootClient({ children }: { children: React.ReactNode }) 
       document.title = `${left} | ${pageName}`
     }
 
-    // If on a game route, fetch the game title by slug
+    // If on a game route, fetch the game title by slug (with in-memory cache)
     const match = pathname.match(/^\/g\/([^\/]+)/) || pathname.match(/^\/admin\/g\/([^\/]+)/)
     if (match && match[1]) {
       const slug = match[1]
-      let mounted = true
-      const supabase = getSupabaseClient()
-      ;(async () => {
+      if (titleCache.current.has(slug)) {
+        trySetTitle(titleCache.current.get(slug))
+        return
+      }
+      isMounted.current = true
+      const fetchTitle = async () => {
         try {
           const { data, error } = await supabase.from('games').select('title').eq('slug', slug).maybeSingle()
-          if (!mounted) return
+          if (!isMounted.current) return
           if (error || !data) {
             trySetTitle()
             return
           }
-          trySetTitle((data as any).title)
+          const title = (data as any).title
+          titleCache.current.set(slug, title)
+          trySetTitle(title)
         } catch (e) {
           trySetTitle()
         }
-      })()
-      return () => { mounted = false }
+      }
+      fetchTitle()
+      return () => { isMounted.current = false }
     }
 
     // Not a game route

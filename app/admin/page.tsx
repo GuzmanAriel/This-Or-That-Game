@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import EmojiPicker from '../components/EmojiPicker'
 import Card from '../components/Card'
 import { getSupabaseClient } from '../../lib/supabaseClient'
@@ -8,7 +8,7 @@ import type { Game } from '../../lib/types'
 import { loginWithEmail } from '../../auth';
 
 export default function AdminPage() {
-  const supabase = getSupabaseClient()
+  const supabase = useMemo(() => getSupabaseClient(), [])
 
   const [checking, setChecking] = useState(true)
   const [user, setUser] = useState<any | null>(null)

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { getSupabaseClient } from '../../../lib/supabase'
 import type { Game, Question } from '../../../lib/types'
 import QuestionCard from '../../components/QuestionCard'
@@ -26,7 +26,7 @@ type Props = { params: { slug: string } }
 
 export default function GameClient({ params }: Props) {
   const { slug } = params
-  const supabase = getSupabaseClient()
+  const supabase = useMemo(() => getSupabaseClient(), [])
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '') || (typeof window !== 'undefined' ? window.location.origin : '')
 

@@ -6,7 +6,7 @@ import { getSupabaseClient } from '../lib/supabaseClient'
 
 // Client component homepage — mirrors `AuthBar` client-side auth logic
 export default function HomePage() {
-  const supabase = getSupabaseClient()
+  const supabase = useMemo(() => getSupabaseClient(), [])
   const [user, setUser] = useState<any | null>(null)
 
   // Fetch games the user created (admin view) and games they've submitted to (player view).

@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '../../lib/supabase'
 
 export default function JoinPage() {
-  const supabase = getSupabaseClient()
+  const supabase = useMemo(() => getSupabaseClient(), [])
   const router = useRouter()
 
   const [code, setCode] = useState('')

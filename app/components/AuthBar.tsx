@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useMemo } from 'react'
 import { getSupabaseClient } from '../../lib/supabaseClient'
 import MobileMenu from './MobileMenu'
 
 export default function AuthBar() {
-  const supabase = getSupabaseClient()
+  const supabase = useMemo(() => getSupabaseClient(), [])
   const [user, setUser] = useState<any | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const toggleRef = useRef<HTMLButtonElement | null>(null)

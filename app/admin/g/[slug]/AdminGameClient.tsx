@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getSupabaseClient } from '../../../../lib/supabase'
 import type { Game, Question } from '../../../../lib/types'
@@ -11,7 +11,7 @@ import QuestionCard from '../../../components/QuestionCard'
 export default function AdminGameClient() {
   const params = useParams() as { slug?: string }
   const slug = params?.slug ?? ''
-  const supabase = getSupabaseClient()
+  const supabase = useMemo(() => getSupabaseClient(), [])
 
   const [loading, setLoading] = useState(true)
   const [game, setGame] = useState<Game | null>(null)

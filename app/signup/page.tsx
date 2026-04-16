@@ -1,11 +1,11 @@
 
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { getSupabaseClient } from '../../lib/supabaseClient'
 
 export default function SignUpPage() {
-  const supabase = getSupabaseClient()
+  const supabase = useMemo(() => getSupabaseClient(), [])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
