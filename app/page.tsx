@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
+import Link from 'next/link'
 import { getSupabaseClient } from '../lib/supabaseClient'
 
 // Client component homepage — mirrors `AuthBar` client-side auth logic
@@ -41,16 +42,14 @@ export default function HomePage() {
     ;(async () => {
       setLoading(true)
       try {
-        const { data: a } = await supabase.from('games').select('*').eq('created_by', user.id).order('created_at', { ascending: false })
+        const [aRes, subsRes] = await Promise.all([
+          supabase.from('games').select('*').eq('created_by', user.id).order('created_at', { ascending: false }),
+          supabase.from('submissions').select('game_id').eq('email', user.email),
+        ])
         if (!mounted) return
-        setAdminGames((a as any) ?? [])
-      } catch (e) {
-        if (mounted) setAdminGames([])
-      }
+        setAdminGames((aRes.data as any) ?? [])
 
-      try {
-        const { data: subs } = await supabase.from('submissions').select('game_id').eq('email', user.email)
-        if (!mounted) return
+        const subs = subsRes.data
         const ids = Array.from(new Set(((subs as any[]) || []).map((s) => s.game_id).filter(Boolean)))
         if (ids.length > 0) {
           const { data: g } = await supabase.from('games').select('*').in('id', ids)
@@ -60,21 +59,24 @@ export default function HomePage() {
           if (mounted) setSubmittedGames([])
         }
       } catch (e) {
-        if (mounted) setSubmittedGames([])
+        if (mounted) {
+          setAdminGames([])
+          setSubmittedGames([])
+        }
+      } finally {
+        if (mounted) setLoading(false)
       }
-
-      if (mounted) setLoading(false)
     })()
     return () => { mounted = false }
   }, [user, supabase])
 
   // determine admin status client-side: either app metadata or if they created games
-  const isAdmin = Boolean(
+  const isAdmin = useMemo(() => Boolean(
     user && (
       (user.app_metadata && (user.app_metadata.role === 'admin' || (Array.isArray(user.app_metadata.roles) && user.app_metadata.roles.includes('admin')))) ||
       (adminGames && adminGames.length > 0)
     )
-  )
+  ), [user, adminGames])
 
   return (
     <div className="min-h-screen flex flex-col items-center px-6 py-12">
@@ -106,18 +108,18 @@ export default function HomePage() {
                 <p className="mt-2 text-gray-600">Create and manage your games.</p>
                 {isAdmin && (
                   <div className="mt-4">
-                    <a href="/admin" className="btn-primary">Go to Admin</a>
+                    <Link href="/admin" className="btn-primary">Go to Admin</Link>
                   </div>
                 )}
               </div>
 
-              <a
+              <Link
                 href="/admin"
                 className="block border rounded-lg p-6 hover:shadow-lg transition bg-white"
               >
                 <h3 className="text-lg font-semibold">🏆 View Leaderboards</h3>
                 <p className="mt-2 text-gray-600">Select a game to view its leaderboard.</p>
-              </a>
+              </Link>
             </div>
           </section>
         ) : (
@@ -135,13 +137,13 @@ export default function HomePage() {
                 </p>
                 <div className="mt-4">
                     <div className="flex items-center space-x-3">
-                      <a href="/signup" className="btn-primary">Sign up</a>
-                      <a
+                      <Link href="/signup" className="btn-primary">Sign up</Link>
+                      <Link
                         href="/admin"
                         className="inline-block border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50 transition"
                       >
                         Login
-                      </a>
+                      </Link>
                     </div>
                 </div>
               </div>
@@ -155,7 +157,7 @@ export default function HomePage() {
                 <code className="block mt-3 bg-gray-100 px-3 py-2 rounded text-sm">/g/jack-and-jills-baby-shower</code>
                 <div className="mt-3 text-sm text-gray-600">Note: the game code is the <strong>slug</strong> — the last part of the URL (for example <span className="font-mono">/g/test-game</span>).</div>
                 <div className="mt-4">
-                  <a href="/join" className="inline-block btn-primary">Join with Game Code (slug)</a>
+                  <Link href="/join" className="inline-block btn-primary">Join with Game Code (slug)</Link>
                 </div>
               </div>
             </div>
