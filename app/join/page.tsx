@@ -28,7 +28,7 @@ export default function JoinPage() {
     setLoading(true)
     try {
       // find game by slug (game code maps to slug)
-      const { data: gData } = await supabase.from('games').select('*').eq('slug', slug).limit(1).maybeSingle()
+      const { data: gData } = await supabase.from('games').select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_at').eq('slug', slug).limit(1).maybeSingle()
       if (!gData) {
         setError('Game not found for that code')
         return
@@ -37,7 +37,7 @@ export default function JoinPage() {
       // find existing players with exact same name for this game
       const { data: found } = await supabase
         .from('players')
-        .select('*')
+        .select('id,game_id,first_name,last_name,created_at')
         .eq('game_id', (gData as any).id)
         .eq('first_name', fn)
         .eq('last_name', ln)
@@ -56,7 +56,7 @@ export default function JoinPage() {
         const { data: inserted, error } = await supabase
           .from('players')
           .insert({ game_id: (gData as any).id, first_name: fn, last_name: ln })
-          .select()
+          .select('id,game_id,first_name,last_name,created_at')
           .limit(1)
           .maybeSingle()
         if (error) throw error
@@ -90,7 +90,7 @@ export default function JoinPage() {
       const { data: inserted, error } = await supabase
         .from('players')
         .insert({ game_id: matchGame.id, first_name: fn, last_name: ln })
-        .select()
+        .select('id,game_id,first_name,last_name,created_at')
         .limit(1)
         .maybeSingle()
       if (error) throw error

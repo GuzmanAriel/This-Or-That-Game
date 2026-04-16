@@ -74,7 +74,7 @@ export default function AdminGameClient() {
 
       const gResp = await supabase
         .from('games')
-        .select('*')
+        .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
         .eq('slug', slug)
         .limit(1)
         .maybeSingle()
@@ -111,7 +111,7 @@ export default function AdminGameClient() {
 
       const qResp = await supabase
         .from('questions')
-        .select('*')
+        .select('id,game_id,prompt,order_index,correct_answer')
         .eq('game_id', gData.id)
         .order('order_index', { ascending: true })
       const qData = qResp.data as Question[] | null
@@ -269,7 +269,7 @@ export default function AdminGameClient() {
       // refresh questions
       const qResp = await supabase
         .from('questions')
-        .select('*')
+        .select('id,game_id,prompt,order_index,correct_answer')
         .eq('game_id', gameId)
         .order('order_index', { ascending: true })
       const qData = qResp.data as Question[] | null
@@ -321,7 +321,7 @@ export default function AdminGameClient() {
         .from('games')
         .update(updatePayload)
         .eq('id', game.id)
-        .select()
+        .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
         .limit(1)
         .maybeSingle()
       if (error) throw error
@@ -385,7 +385,7 @@ export default function AdminGameClient() {
         .from('games')
         .update(updatePayload)
         .eq('id', game.id)
-        .select()
+        .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
         .limit(1)
         .maybeSingle()
       if (error) throw error
@@ -434,7 +434,7 @@ export default function AdminGameClient() {
           .from('games')
           .update({ tiebreaker_prompt: null, tiebreaker_answer: null })
           .eq('id', game.id)
-          .select()
+          .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
           .limit(1)
           .maybeSingle()
         if (error) throw error
@@ -460,7 +460,7 @@ export default function AdminGameClient() {
         .from('games')
         .update({ is_open: !game.is_open })
         .eq('id', game.id)
-        .select()
+        .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
         .limit(1)
         .maybeSingle()
       if (error) throw error
@@ -666,7 +666,7 @@ export default function AdminGameClient() {
                       try {
                         const { error } = await supabase.from('questions').update({ prompt: e.prompt.trim(), correct_answer: e.correct }).eq('id', q.id)
                         if (error) throw error
-                        const qResp = await supabase.from('questions').select('*').eq('game_id', game!.id).order('order_index', { ascending: true })
+                        const qResp = await supabase.from('questions').select('id,game_id,prompt,order_index,correct_answer').eq('game_id', game!.id).order('order_index', { ascending: true })
                         setQuestions(qResp.data ?? [])
                         setEditing(prev => { const n = { ...prev }; delete n[q.id]; return n })
                         setFocusReturnId(String(q.id))

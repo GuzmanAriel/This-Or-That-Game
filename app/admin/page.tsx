@@ -78,7 +78,7 @@ export default function AdminPage() {
     let mounted = true
     async function fetchGames() {
       setGamesLoading(true)
-      const { data, error } = await supabase.from('games').select('*').eq('created_by', user.id).order('created_at', { ascending: false })
+      const { data, error } = await supabase.from('games').select('id,title,slug,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,created_at,created_by').eq('created_by', user.id).order('created_at', { ascending: false })
       if (!mounted) return
       if (error) {
         setGames([])
@@ -185,7 +185,7 @@ export default function AdminPage() {
       setTiebreakerPrompt('')
       setTiebreakerAnswer('')
       // refresh games list
-      const { data: refreshed, error: refreshedErr } = await supabase.from('games').select('*').eq('created_by', created.created_by ?? user?.id).order('created_at', { ascending: false })
+      const { data: refreshed, error: refreshedErr } = await supabase.from('games').select('id,title,slug,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,created_at,created_by').eq('created_by', created.created_by ?? user?.id).order('created_at', { ascending: false })
       if (!refreshedErr) setGames((refreshed as Game[]) ?? [])
     } catch (err: any) {
       setFormError(err?.message ?? 'Request failed')

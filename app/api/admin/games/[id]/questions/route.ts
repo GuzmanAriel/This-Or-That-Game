@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const gameId = params.id
   if (!gameId) return NextResponse.json({ error: 'Missing game id' }, { status: 400 })
 
-  const { data, error } = await supabase.from('questions').select('*').eq('game_id', gameId).order('order_index', { ascending: true })
+  const { data, error } = await supabase.from('questions').select('id,game_id,prompt,order_index,correct_answer').eq('game_id', gameId).order('order_index', { ascending: true })
   if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 })
   return NextResponse.json({ questions: data })
 }
@@ -93,7 +93,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     order_index: nextIndex
   }
 
-  const { data: inserted, error: insertErr } = await supabase.from('questions').insert(insertPayload).select().single()
+  const { data: inserted, error: insertErr } = await supabase.from('questions').insert(insertPayload).select('id,game_id,prompt,order_index,correct_answer').single()
   if (insertErr) {
     return NextResponse.json({ error: 'Failed to insert question' }, { status: 500 })
   }

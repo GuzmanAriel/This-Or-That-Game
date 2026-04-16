@@ -52,7 +52,7 @@ export default function AuthBar() {
       setLoadingMenus(true)
       try {
         // admin games: games this user created
-        const { data: a } = await supabase.from('games').select('*').eq('created_by', user.id).order('created_at', { ascending: false })
+        const { data: a } = await supabase.from('games').select('id,title,slug,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,created_at,created_by').eq('created_by', user.id).order('created_at', { ascending: false })
         if (!mounted) return
         setAdminGames((a as any) ?? [])
       } catch (err) {
@@ -65,7 +65,7 @@ export default function AuthBar() {
         if (!mounted) return
         const ids = Array.from(new Set(((subs as any[]) || []).map((s) => s.game_id).filter(Boolean)))
         if (ids.length > 0) {
-          const { data: g } = await supabase.from('games').select('*').in('id', ids)
+          const { data: g } = await supabase.from('games').select('id,title,slug,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,created_at,created_by').in('id', ids)
           if (!mounted) return
           setSubmittedGames((g as any) ?? [])
         } else {
@@ -105,7 +105,7 @@ export default function AuthBar() {
       let mounted = true
       ;(async () => {
         try {
-          const { data } = await supabase.from('games').select('*').in('id', ids)
+          const { data } = await supabase.from('games').select('id,title,slug,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,created_at,created_by').in('id', ids)
           if (!mounted) return
           const games = (data as any) ?? []
           setPlayerGames(games)
@@ -122,7 +122,7 @@ export default function AuthBar() {
           }
           if (pids.length > 0) {
             try {
-              const { data: players } = await supabase.from('players').select('*').in('id', pids)
+              const { data: players } = await supabase.from('players').select('id,game_id,first_name,last_name,created_at').in('id', pids)
               if (!mounted) return
               const map: Record<string, any> = {}
               ;(players as any[] || []).forEach((p) => { if (p && p.id) map[p.id] = p })

@@ -48,9 +48,9 @@ export default function LeaderboardClient({ params }: Props) {
         try { document.body.dataset.theme = (gData as any).theme ?? 'default' } catch (e) {}
 
         const [{ data: pData }, { data: qData }, { data: aData }, userResp] = await Promise.all([
-          supabase.from('players').select('*').eq('game_id', gameId),
-          supabase.from('questions').select('*').eq('game_id', gameId),
-          supabase.from('answers').select('*').eq('game_id', gameId).order('created_at', { ascending: true }),
+          supabase.from('players').select('id,game_id,first_name,last_name,created_at').eq('game_id', gameId),
+          supabase.from('questions').select('id,game_id,prompt,order_index,correct_answer').eq('game_id', gameId),
+          supabase.from('answers').select('id,game_id,player_id,question_id,answer_text,created_at').eq('game_id', gameId).order('created_at', { ascending: true }),
           supabase.auth.getUser()
         ])
 

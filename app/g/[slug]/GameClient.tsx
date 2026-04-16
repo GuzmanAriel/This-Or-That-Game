@@ -69,7 +69,7 @@ export default function GameClient({ params }: Props) {
     let mounted = true
     async function load() {
       setLoading(true)
-      const { data: gData } = await supabase.from('games').select('*').eq('slug', slug).limit(1).maybeSingle()
+      const { data: gData } = await supabase.from('games').select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_at').eq('slug', slug).limit(1).maybeSingle()
       if (!mounted) return
       if (!gData) {
         setGame(null)
@@ -84,7 +84,7 @@ export default function GameClient({ params }: Props) {
         document.body.dataset.theme = t
       } catch (e) {}
       // Select only the public fields to avoid leaking correct answers
-      const { data: qData } = await supabase.from('questions').select('id, prompt, order_index, game_id').eq('game_id', (gData as any).id).order('order_index', { ascending: true })
+      const { data: qData } = await supabase.from('questions').select('id,prompt,order_index,game_id').eq('game_id', (gData as any).id).order('order_index', { ascending: true })
       if (!mounted) return
       setQuestions((qData as any) ?? [])
       // initialize answers state map
@@ -132,7 +132,7 @@ export default function GameClient({ params }: Props) {
           try {
             const { data } = await supabase
               .from('answers')
-              .select('*')
+              .select('id,game_id,player_id,question_id,answer_text,created_at')
               .eq('game_id', gid)
               .eq('player_id', playerId)
               .order('created_at', { ascending: false })
@@ -239,7 +239,7 @@ export default function GameClient({ params }: Props) {
       // find players with the same exact name for this game
       const { data: found } = await supabase
         .from('players')
-        .select('*')
+        .select('id,game_id,first_name,last_name,created_at')
         .eq('game_id', game.id)
         .eq('first_name', first_name)
         .eq('last_name', last_name)
@@ -255,7 +255,7 @@ export default function GameClient({ params }: Props) {
       const { data: inserted, error } = await supabase
         .from('players')
         .insert({ game_id: game.id, first_name, last_name })
-        .select()
+        .select('id,game_id,first_name,last_name,created_at')
         .limit(1)
         .maybeSingle()
       if (error) throw error
