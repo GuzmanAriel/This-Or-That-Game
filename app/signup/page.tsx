@@ -68,16 +68,21 @@ export default function SignUpPage() {
     <div className="container mx-auto p-8" data-page="signup">
       <h2 className="text-2xl font-semibold">Sign up</h2>
 
-      <form onSubmit={handleSignUp} className="mt-6 max-w-md" data-component="signup-form">
+      <form onSubmit={handleSignUp} className="mt-6 max-w-md" data-component="signup-form" aria-busy={loading}>
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
           <input
             id="email"
+            name="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
+            autoFocus
+            disabled={loading}
+            aria-invalid={!!error}
+            aria-describedby="signup-status"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
           />
         </div>
@@ -86,16 +91,21 @@ export default function SignUpPage() {
           <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
           <input
             id="password"
+            name="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={8}
             autoComplete="new-password"
+            disabled={loading}
+            aria-invalid={!!error}
+            aria-describedby="signup-status"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
           />
         </div>
 
-        <div role="status" aria-live="polite" className="mt-2">
+        <div role="status" aria-live="polite" id="signup-status" className="mt-2">
           {error ? <p className="text-sm text-red-600">{error}</p> : message ? <p className="text-sm text-green-600">{message}</p> : null}
         </div>
 
