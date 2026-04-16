@@ -49,7 +49,7 @@ export default function SignUpPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
           />
         </div>
 
@@ -61,7 +61,7 @@ export default function SignUpPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"
           />
         </div>
 
@@ -71,7 +71,7 @@ export default function SignUpPage() {
         <div className="mt-6">
           <button
             type="submit"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            className="btn-primary"
             disabled={loading}
           >
             {loading ? 'Signing up…' : 'Sign up'}
