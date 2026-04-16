@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState, useMemo } from 'react'
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { getSupabaseClient } from '../../../lib/supabase'
 import type { Game, Question } from '../../../lib/types'
@@ -13,6 +13,7 @@ interface Player {
   game_id: string
   first_name: string
   last_name?: string
+  created_at?: string
 }
 
 interface AnswerRecord {
@@ -39,7 +40,12 @@ export default function GameClient({ params }: Props) {
   // player state: stored in memory and persisted to localStorage so refresh keeps session
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [playerLoading, setPlayerLoading] = useState(false)
-  const [playerMatches, setPlayerMatches] = useState<any[] | null>(null)
+  const [playerMatches, setPlayerMatches] = useState<Player[] | null>(null)
+
+  // per-effect active refs to avoid setting state after a particular async op is cancelled
+  const loadActiveRef = useRef(false)
+  const restoreActiveRef = useRef(false)
+  const persistTimerRef = useRef<number | null>(null)
 
   // answers state: map question_id -> { value: 'A'|'B'|'', loading, error, saved }
   const [answersState, setAnswersState] = useState<Record<string, { value: 'A' | 'B' | ''; loading: boolean; error?: string; saved?: boolean }>>({})
@@ -66,11 +72,11 @@ export default function GameClient({ params }: Props) {
   }, [game])
 
   useEffect(() => {
-    let mounted = true
+    loadActiveRef.current = true
     async function load() {
       setLoading(true)
-      const { data: gData } = await supabase.from('games').select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_at').eq('slug', slug).limit(1).maybeSingle()
-      if (!mounted) return
+      const { data: gData } = await supabase.from('games').select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_at').eq('slug', slug).maybeSingle()
+      if (!loadActiveRef.current) return
       if (!gData) {
         setGame(null)
         setQuestions([])
@@ -85,7 +91,7 @@ export default function GameClient({ params }: Props) {
       } catch (e) {}
       // Select only the public fields to avoid leaking correct answers
       const { data: qData } = await supabase.from('questions').select('id,prompt,order_index,game_id').eq('game_id', (gData as any).id).order('order_index', { ascending: true })
-      if (!mounted) return
+      if (!loadActiveRef.current) return
       setQuestions((qData as any) ?? [])
       // initialize answers state map
           const map: Record<string, { value: 'A' | 'B' | ''; loading: boolean; saved?: boolean }> = {}
@@ -96,15 +102,15 @@ export default function GameClient({ params }: Props) {
       setLoading(false)
     }
     load()
-    return () => { mounted = false; try { document.body.dataset.theme = 'default' } catch (e) {} }
+    return () => { loadActiveRef.current = false; try { document.body.dataset.theme = 'default' } catch (e) {} }
   }, [slug, supabase])
 
       // Restore saved answers from DB and any local draft for this player
       useEffect(() => {
         if (!game || !playerId || questions.length === 0) return
-        const gid = game.id
-        let mounted = true
-        async function restore() {
+          const gid = game.id
+          restoreActiveRef.current = true
+          async function restore() {
           // restore draft first (so user edits aren't lost)
           try {
             const draftKey = `answersDraft:${gid}:${playerId}`
@@ -137,7 +143,7 @@ export default function GameClient({ params }: Props) {
               .eq('player_id', playerId)
               .order('created_at', { ascending: false })
 
-            if (!mounted || !data) return
+            if (!restoreActiveRef.current || !data) return
 
             // build map of latest per question_id (including tiebreaker where question_id == null)
             const seen = new Set<string>()
@@ -184,25 +190,49 @@ export default function GameClient({ params }: Props) {
         }
 
         restore()
-        return () => { mounted = false }
+        return () => { restoreActiveRef.current = false }
       }, [game, playerId, questions, supabase])
 
       // persist drafts to localStorage whenever answers/tiebreaker change
       useEffect(() => {
         if (!game || !playerId) return
-        const gid = game.id
-        try {
-          const draftKey = `answersDraft:${gid}:${playerId}`
-          const payload: any = { answers: {}, tiebreaker: tiebreakerState.value }
-          for (const q of questions) {
-            const st = answersState[q.id]
-            if (st) payload.answers[q.id] = st.value
+          const gid = game.id
+          try {
+            // debounce localStorage writes to reduce I/O
+            if (persistTimerRef.current) window.clearTimeout(persistTimerRef.current)
+            persistTimerRef.current = window.setTimeout(() => {
+              try {
+                const draftKey = `answersDraft:${gid}:${playerId}`
+                const payload: any = { answers: {}, tiebreaker: tiebreakerState.value }
+                for (const q of questions) {
+                  const st = answersState[q.id]
+                  if (st) payload.answers[q.id] = st.value
+                }
+                localStorage.setItem(draftKey, JSON.stringify(payload))
+              } catch (e) {
+                // ignore
+              }
+              persistTimerRef.current = null
+            }, 300)
+          } catch (e) {
+            // ignore
           }
-          localStorage.setItem(draftKey, JSON.stringify(payload))
-        } catch (e) {
-          // ignore
-        }
+          return () => { if (persistTimerRef.current) { window.clearTimeout(persistTimerRef.current); persistTimerRef.current = null } }
       }, [answersState, tiebreakerState, game, playerId, questions])
+
+    // memoize answered count to avoid recalculating on every render
+    const answeredCount = useMemo(() => questions.filter(q => answersState[q.id]?.value).length, [questions, answersState])
+
+    const createPlayer = useCallback(async (gameId: string, first_name: string, last_name: string) => {
+      const { data, error } = await supabase
+        .from('players')
+        .insert({ game_id: gameId, first_name, last_name })
+        .select('id,game_id,first_name,last_name,created_at')
+        .maybeSingle()
+      if (error) throw error
+      if (!data) throw new Error('Player insert returned no data')
+      return (data as any).id as string
+    }, [supabase])
 
   if (loading) return <div className="p-8">Loading…</div>
   if (!game) return <div className="p-8">Game not found</div>
@@ -252,14 +282,7 @@ export default function GameClient({ params }: Props) {
       }
 
       // No existing matches — create a new player
-      const { data: inserted, error } = await supabase
-        .from('players')
-        .insert({ game_id: game.id, first_name, last_name })
-        .select('id,game_id,first_name,last_name,created_at')
-        .limit(1)
-        .maybeSingle()
-      if (error) throw error
-      const pid = (inserted as any).id
+      const pid = await createPlayer(game.id, first_name, last_name)
 
       setPlayerId(pid)
       try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
@@ -287,14 +310,7 @@ export default function GameClient({ params }: Props) {
       const f = form ? new FormData(form) : null
       const first_name = String(f?.get('first_name') || '').trim()
       const last_name = String(f?.get('last_name') || '').trim()
-      const { data: inserted, error } = await supabase
-        .from('players')
-        .insert({ game_id: game.id, first_name, last_name })
-        .select('id,game_id,first_name,last_name,created_at')
-        .limit(1)
-        .maybeSingle()
-      if (error) throw error
-      const pid = (inserted as any).id
+      const pid = await createPlayer(game.id, first_name, last_name)
       setPlayerId(pid)
       try { localStorage.setItem(`playerId:${game.id}`, pid) } catch (e) {}
       setPlayerMatches(null)
@@ -420,7 +436,7 @@ export default function GameClient({ params }: Props) {
       )}
       <h2 className="text-5xl font-bold font-heading">Play: {game.title}</h2>
       <div className="mt-3 flex items-center justify-between">
-        <div aria-live="polite" className="text-lg text-gray-700">{`${questions.filter(q => answersState[q.id]?.value).length} of ${questions.length} questions answered`}</div>
+        <div aria-live="polite" className="text-lg text-gray-700">{`${answeredCount} of ${questions.length} questions answered`}</div>
       </div>
       {/* Validation summary is rendered inside the form so we can move focus
           to it when validation fails. See form rendering below. */}
