@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useRef, useMemo } from 'react'
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { getSupabaseClient } from '../../lib/supabaseClient'
 import MobileMenu from './MobileMenu'
@@ -11,6 +11,9 @@ export default function AuthBar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const toggleRef = useRef<HTMLButtonElement | null>(null)
   const openedByKeyboard = useRef(false)
+  const authMountedRef = useRef<boolean>(false)
+  const menusMountedRef = useRef<boolean>(false)
+  const playerMountedRef = useRef<boolean>(false)
 
   // Menu data for admin-created games and games this user submitted to
   const [adminGames, setAdminGames] = useState<any[]>([])
@@ -23,23 +26,26 @@ export default function AuthBar() {
   const [playerProfiles, setPlayerProfiles] = useState<Record<string, any>>({})
 
   useEffect(() => {
-    let mounted = true
+    authMountedRef.current = true
     async function check() {
       const { data } = await supabase.auth.getUser()
-      if (!mounted) return
+      if (!authMountedRef.current) return
       setUser(data.user ?? null)
     }
     check()
     const { data: listener } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+      if (!authMountedRef.current) return
       setUser(session?.user ?? null)
     })
     return () => {
-      mounted = false
+      authMountedRef.current = false
       listener?.subscription?.unsubscribe()
     }
   }, [supabase])
 
   // When a user is available, load their admin games and submitted games
+  const GAME_COLUMNS = 'id,title,slug,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,created_at,created_by'
+
   useEffect(() => {
     if (!user) {
       setAdminGames([])
@@ -47,39 +53,39 @@ export default function AuthBar() {
       // don't return here — keep playerGames available from localStorage
     }
 
-    let mounted = true
+    menusMountedRef.current = true
     async function loadMenus() {
       setLoadingMenus(true)
       try {
-        // admin games: games this user created
-        const { data: a } = await supabase.from('games').select('id,title,slug,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,created_at,created_by').eq('created_by', user.id).order('created_at', { ascending: false })
-        if (!mounted) return
-        setAdminGames((a as any) ?? [])
-      } catch (err) {
-        if (mounted) setAdminGames([])
-      }
+        // run initial queries in parallel where possible
+        const adminQ = supabase.from('games').select(GAME_COLUMNS).eq('created_by', user.id).order('created_at', { ascending: false })
+        const subsQ = supabase.from('submissions').select('game_id').eq('email', user.email)
+        const [aResp, subsResp] = await Promise.all([adminQ, subsQ])
 
-      try {
-        // submissions tied to this user's email -> load related games
-        const { data: subs } = await supabase.from('submissions').select('game_id').eq('email', user.email)
-        if (!mounted) return
-        const ids = Array.from(new Set(((subs as any[]) || []).map((s) => s.game_id).filter(Boolean)))
+        if (!menusMountedRef.current) return
+        setAdminGames((aResp.data as any) ?? [])
+
+        const subs = (subsResp.data as any[]) || []
+        const ids = Array.from(new Set(subs.map((s) => s.game_id).filter(Boolean)))
         if (ids.length > 0) {
-          const { data: g } = await supabase.from('games').select('id,title,slug,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,created_at,created_by').in('id', ids)
-          if (!mounted) return
+          const { data: g } = await supabase.from('games').select(GAME_COLUMNS).in('id', ids)
+          if (!menusMountedRef.current) return
           setSubmittedGames((g as any) ?? [])
         } else {
           setSubmittedGames([])
         }
       } catch (err) {
-        if (mounted) setSubmittedGames([])
+        if (menusMountedRef.current) {
+          setAdminGames([])
+          setSubmittedGames([])
+        }
+      } finally {
+        if (menusMountedRef.current) setLoadingMenus(false)
       }
-
-      if (mounted) setLoadingMenus(false)
     }
 
     loadMenus()
-    return () => { mounted = false }
+    return () => { menusMountedRef.current = false }
   }, [user, supabase])
 
   // Client-side: detect any player IDs stored in localStorage (keys like `playerId:${gameId}`)
@@ -101,12 +107,11 @@ export default function AuthBar() {
         return
       }
 
-      // fetch game records for those ids
-      let mounted = true
+      playerMountedRef.current = true
       ;(async () => {
         try {
-          const { data } = await supabase.from('games').select('id,title,slug,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,created_at,created_by').in('id', ids)
-          if (!mounted) return
+          const { data } = await supabase.from('games').select(GAME_COLUMNS).in('id', ids)
+          if (!playerMountedRef.current) return
           const games = (data as any) ?? []
           setPlayerGames(games)
 
@@ -123,21 +128,21 @@ export default function AuthBar() {
           if (pids.length > 0) {
             try {
               const { data: players } = await supabase.from('players').select('id,game_id,first_name,last_name,created_at').in('id', pids)
-              if (!mounted) return
+              if (!playerMountedRef.current) return
               const map: Record<string, any> = {}
               ;(players as any[] || []).forEach((p) => { if (p && p.id) map[p.id] = p })
               setPlayerProfiles(map)
             } catch (e) {
-              if (mounted) setPlayerProfiles({})
+              if (playerMountedRef.current) setPlayerProfiles({})
             }
           } else {
             setPlayerProfiles({})
           }
         } catch (err) {
-          if (mounted) setPlayerGames([])
+          if (playerMountedRef.current) setPlayerGames([])
         }
       })()
-      return () => { mounted = false }
+      return () => { playerMountedRef.current = false }
     } catch (e) {
       setPlayerGameIds([])
       setPlayerGames([])
@@ -145,15 +150,28 @@ export default function AuthBar() {
   }, [supabase])
 
   // derive admin status: check app/user metadata OR whether they have created games
-  const isAdmin = Boolean(
+  const isAdmin = useMemo(() => Boolean(
     (user && (user.app_metadata?.role === 'admin' || (Array.isArray(user.app_metadata?.roles) && user.app_metadata.roles.includes('admin')))) ||
     (adminGames && adminGames.length > 0)
-  )
+  ), [user, adminGames])
 
-  async function handleSignOut() {
+  const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut()
     setUser(null)
-  }
+  }, [supabase])
+
+  const handleToggleMobile = useCallback(() => {
+    openedByKeyboard.current = false
+    setMobileOpen((s) => !s)
+  }, [])
+
+  const handleToggleMobileKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+      openedByKeyboard.current = true
+      setMobileOpen((s) => !s)
+      e.preventDefault()
+    }
+  }, [])
 
   return (
     <div className="w-full border-b authbar shadow-sm relative" data-component="authbar">
@@ -245,14 +263,8 @@ export default function AuthBar() {
         </div>
          <button
             ref={toggleRef}
-            onClick={() => { openedByKeyboard.current = false; setMobileOpen((s) => !s) }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
-                openedByKeyboard.current = true
-                setMobileOpen((s) => !s)
-                e.preventDefault()
-              }
-            }}
+            onClick={handleToggleMobile}
+            onKeyDown={handleToggleMobileKeyDown}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
             aria-label="Toggle navigation"
