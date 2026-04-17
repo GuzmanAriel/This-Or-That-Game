@@ -55,6 +55,11 @@ export default function AdminGameClient() {
   const tiebreakerPromptRef = useRef<HTMLInputElement | null>(null)
   const tiebreakerAnswerRef = useRef<HTMLInputElement | null>(null)
 
+  // mounted guards for async effects (useRef to avoid re-creating on every render)
+  const loadMountedRef = useRef(false)
+  const authMountedRef = useRef(false)
+  const qrMountedRef = useRef(false)
+
 
   // new question form
   const [prompt, setPrompt] = useState('')
@@ -67,7 +72,7 @@ export default function AdminGameClient() {
 
   useEffect(() => {
     if (!slug) return
-    let mounted = true
+    loadMountedRef.current = true
     async function load() {
       setLoading(true)
       setError(null)
@@ -76,12 +81,11 @@ export default function AdminGameClient() {
         .from('games')
         .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
         .eq('slug', slug)
-        .limit(1)
         .maybeSingle()
       const gData = gResp.data as Game | null
       const gErr = gResp.error
 
-      if (!mounted) return
+      if (!loadMountedRef.current) return
       if (gErr) {
         setError('Failed to load game')
         setLoading(false)
@@ -117,7 +121,7 @@ export default function AdminGameClient() {
       const qData = qResp.data as Question[] | null
       const qErr = qResp.error
 
-      if (!mounted) return
+      if (!loadMountedRef.current) return
       if (qErr) {
         setError('Failed to load questions')
         setQuestions([])
@@ -129,25 +133,25 @@ export default function AdminGameClient() {
     }
 
     load()
-    return () => { mounted = false; try { document.body.dataset.theme = 'default' } catch (e) {} }
+    return () => { loadMountedRef.current = false; try { document.body.dataset.theme = 'default' } catch (e) {} }
   }, [slug, supabase])
 
   useEffect(() => {
-    let mounted = true
+    authMountedRef.current = true
     async function checkAuth() {
       try {
         const { data } = await supabase.auth.getUser()
-        if (!mounted) return
+        if (!authMountedRef.current) return
         setUser(data.user ?? null)
       } catch (err) {
-        if (!mounted) return
+        if (!authMountedRef.current) return
         setUser(null)
       } finally {
-        if (mounted) setCheckingUser(false)
+        if (authMountedRef.current) setCheckingUser(false)
       }
     }
     checkAuth()
-    return () => { mounted = false }
+    return () => { authMountedRef.current = false }
   }, [supabase])
 
   useEffect(() => {
@@ -193,7 +197,7 @@ export default function AdminGameClient() {
 
   useEffect(() => {
     // generate QR data URL for the public play link using the local `qrcode` package
-    let mounted = true
+    qrMountedRef.current = true
     async function gen() {
       if (!game?.slug) return
       try {
@@ -201,15 +205,15 @@ export default function AdminGameClient() {
         const target = siteUrl ? `${siteUrl}/g/${game.slug}` : `${window.location.origin}/g/${game.slug}`
         const mod = await import('qrcode')
         const dataUrl = await mod.toDataURL(target, { width: 400 })
-        if (!mounted) return
+        if (!qrMountedRef.current) return
         setQrDataUrl(dataUrl)
       } catch (err) {
         console.error('Failed to generate QR', err)
-        if (mounted) setQrDataUrl(null)
+        if (qrMountedRef.current) setQrDataUrl(null)
       }
     }
     gen()
-    return () => { mounted = false }
+    return () => { qrMountedRef.current = false }
   }, [game?.slug])
 
   if (!slug) {
@@ -322,7 +326,6 @@ export default function AdminGameClient() {
         .update(updatePayload)
         .eq('id', game.id)
         .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
-        .limit(1)
         .maybeSingle()
       if (error) throw error
       if (data) setGame(data as Game)
@@ -386,7 +389,6 @@ export default function AdminGameClient() {
         .update(updatePayload)
         .eq('id', game.id)
         .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
-        .limit(1)
         .maybeSingle()
       if (error) throw error
       if (data) setGame(data as Game)
@@ -435,7 +437,6 @@ export default function AdminGameClient() {
           .update({ tiebreaker_prompt: null, tiebreaker_answer: null })
           .eq('id', game.id)
           .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
-          .limit(1)
           .maybeSingle()
         if (error) throw error
         if (data) {
@@ -461,7 +462,6 @@ export default function AdminGameClient() {
         .update({ is_open: !game.is_open })
         .eq('id', game.id)
         .select('id,slug,title,is_open,option_a_label,option_b_label,option_a_emoji,option_b_emoji,theme,tiebreaker_prompt,tiebreaker_answer,created_by,created_at')
-        .limit(1)
         .maybeSingle()
       if (error) throw error
       if (data) setGame(data as Game)
