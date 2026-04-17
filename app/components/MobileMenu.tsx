@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 
 type Props = {
@@ -20,13 +20,18 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
   const [playerOpen, setPlayerOpen] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
   const [submittedOpen, setSubmittedOpen] = useState(false)
+  const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+  const togglePlayerOpen = useCallback(() => setPlayerOpen((s) => !s), [])
+  const toggleAdminOpen = useCallback(() => setAdminOpen((s) => !s), [])
+  const toggleSubmittedOpen = useCallback(() => setSubmittedOpen((s) => !s), [])
+  const handleSignOutAndClose = useCallback(() => { onSignOut(); onClose(); }, [onSignOut, onClose])
 
   useEffect(() => {
     if (!open || !focusOnOpen) return
     const root = menuRef.current
     if (!root) return
-    const selector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    const first = root.querySelector<HTMLElement>(selector)
+    const first = root.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
     if (first) {
       first.focus()
     }
@@ -65,10 +70,8 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
     if (!open) return
     const root = menuRef.current
     if (!root) return
-    const selector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-
     const getFocusable = () =>
-      Array.from(root.querySelectorAll<HTMLElement>(selector)).filter((el) => el.offsetParent !== null && !el.hasAttribute('disabled'))
+      Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter((el) => el.offsetParent !== null && !el.hasAttribute('disabled'))
 
     function handleKey(e: KeyboardEvent) {
       if (e.key !== 'Tab') return
@@ -119,7 +122,7 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
               aria-level={3}
               aria-controls="player-games-list"
               aria-expanded={playerOpen}
-              onClick={() => setPlayerOpen((s) => !s)}
+              onClick={togglePlayerOpen}
               className="font-bold text-xl mt-6 flex items-center justify-between w-full"
             >
               <span>Player Games</span>
@@ -141,7 +144,7 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
               aria-level={3}
               aria-controls="your-games-list"
               aria-expanded={adminOpen}
-              onClick={() => setAdminOpen((s) => !s)}
+              onClick={toggleAdminOpen}
               className="font-semibold text-xl mt-6 flex items-center justify-between w-full"
             >
               <span>Your Games</span>
@@ -163,7 +166,7 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
               aria-level={3}
               aria-controls="submitted-games-list"
               aria-expanded={submittedOpen}
-              onClick={() => setSubmittedOpen((s) => !s)}
+              onClick={toggleSubmittedOpen}
               className="font-bold mt-6 flex items-center justify-between w-full"
             >
               <span>Your Submissions</span>
@@ -178,8 +181,8 @@ export default function MobileMenu({ open, onClose, user, isAdmin, playerGames, 
         )}
 
         <div className="pt-2 border-t mt-6">
-          {user ? (
-            <button onClick={() => { onSignOut(); onClose(); }} className="block w-full text-left font-semibold text-xl">Log out</button>
+            {user ? (
+            <button onClick={handleSignOutAndClose} className="block w-full text-left font-semibold text-xl">Log out</button>
           ) : (
             <>
               <Link href="/admin" onClick={onClose} className="block font-semibold text-xl">Sign in / Admin</Link>
